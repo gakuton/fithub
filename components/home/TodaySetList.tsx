@@ -7,6 +7,7 @@ import { SetInputModal } from '@/components/set/SetInputModal';
 
 type SetRow = {
   setId: string;
+  workoutDate: string;
   setNumber: number;
   isBodyweight: boolean;
   weightKg: number | null;
@@ -122,7 +123,7 @@ export function TodaySetList() {
             id: editTarget.set.setId,
             exerciseId: editTarget.set.exerciseId,
             exerciseName: editTarget.set.exerciseName,
-            workoutDate: new Date().toISOString().split('T')[0],
+            workoutDate: editTarget.set.workoutDate,
             setNumber: editTarget.set.setNumber,
             isBodyweight: editTarget.set.isBodyweight,
             weightKg: editTarget.set.weightKg,

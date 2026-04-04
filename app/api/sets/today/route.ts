@@ -10,6 +10,7 @@ export async function GET() {
   const rows = await db
     .select({
       setId:         workoutSets.id,
+      workoutDate:   workoutSets.workoutDate,
       setNumber:     workoutSets.setNumber,
       isBodyweight:  workoutSets.isBodyweight,
       weightKg:      workoutSets.weightKg,

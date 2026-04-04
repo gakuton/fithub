@@ -293,6 +293,7 @@ export function SetInputModal({ mode, initialData, open, onOpenChange }: Props) 
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['sets', 'today'] });
+      toast.success('セットを更新しました');
       onOpenChange(false);
     },
     onError: (e) => toast.error((e as Error).message),
@@ -306,6 +307,7 @@ export function SetInputModal({ mode, initialData, open, onOpenChange }: Props) 
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['sets', 'today'] });
+      toast.success('セットを削除しました');
       setShowDeleteDialog(false);
       onOpenChange(false);
     },
