@@ -3,9 +3,12 @@
 import { use } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useRouter } from 'next/navigation';
-import { ChevronLeft, Trophy } from 'lucide-react';
+import { ChevronLeft, Trophy, Download } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 import { RmChart } from '@/components/exercise/RmChart';
 import { SetHistoryTable } from '@/components/exercise/SetHistoryTable';
+import { buildExerciseText, downloadTxt } from '@/lib/utils/export';
+import { localToday } from '@/lib/utils/date';
 
 type ApiResponse = {
   data: {
@@ -64,6 +67,12 @@ export default function ExerciseDetailPage({
     );
   }
 
+  const handleExport = () => {
+    const text = buildExerciseText(exercise, sets, max1rm ?? null, localToday());
+    const safeName = exercise.name.replace(/[\\/:*?"<>|]/g, '_');
+    downloadTxt(`fithub_exercise_${safeName}_${localToday()}.txt`, text);
+  };
+
   return (
     <div className="mx-auto max-w-lg px-4 pt-4 pb-8 space-y-4">
       {/* 戻るボタン */}
@@ -76,14 +85,20 @@ export default function ExerciseDetailPage({
         履歴に戻る
       </button>
 
-      {/* 種目名・カテゴリ */}
-      <div>
-        <h1 className="text-2xl font-bold tracking-tight">{exercise.name}</h1>
-        {exercise.category && (
-          <span className="mt-1 inline-block rounded-full bg-primary/10 px-2 py-0.5 text-xs text-primary">
-            {exercise.category}
-          </span>
-        )}
+      {/* 種目名・カテゴリ + エクスポートボタン */}
+      <div className="flex items-start justify-between gap-2">
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight">{exercise.name}</h1>
+          {exercise.category && (
+            <span className="mt-1 inline-block rounded-full bg-primary/10 px-2 py-0.5 text-xs text-primary">
+              {exercise.category}
+            </span>
+          )}
+        </div>
+        <Button variant="outline" size="sm" className="mt-1 shrink-0 gap-1.5" onClick={handleExport}>
+          <Download size={14} />
+          記録を出力
+        </Button>
       </div>
 
       {/* 全期間 MAX 1RM サマリー */}

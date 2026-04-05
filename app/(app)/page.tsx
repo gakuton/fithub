@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { Dumbbell, Scale } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { TodaySetList } from '@/components/home/TodaySetList';
+import { ExportTodayButton } from '@/components/home/ExportTodayButton';
 import { BodyCompositionSummary } from '@/components/home/BodyCompositionSummary';
 import { SetInputModal } from '@/components/set/SetInputModal';
 import { localToday } from '@/lib/utils/date';
@@ -24,9 +25,12 @@ export default function HomePage() {
       </div>
 
       <section className="mb-6">
-        <div className="mb-3 flex items-baseline justify-between">
-          <h2 className="text-sm font-semibold text-muted-foreground">今日のトレーニング</h2>
-          <span className="text-xs text-muted-foreground">{localToday()}</span>
+        <div className="mb-3 flex items-center justify-between">
+          <div>
+            <h2 className="text-sm font-semibold text-muted-foreground">今日のトレーニング</h2>
+            <span className="text-xs text-muted-foreground">{localToday()}</span>
+          </div>
+          <ExportTodayButton />
         </div>
         <TodaySetList />
       </section>
