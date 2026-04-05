@@ -340,7 +340,7 @@ export function SetInputModal({ mode, initialData, open, onOpenChange, extraInva
 
       {/* スクロール可能なフォームエリア */}
       <div className="flex-1 overflow-y-auto">
-        <div className="flex flex-col gap-4 px-4 py-4">
+        <div className="flex flex-col gap-4 px-4 py-4 pb-8">
           {/* 種目選択（create のみ） */}
           {mode === 'create' && (
             <div className="space-y-1.5">
@@ -443,66 +443,64 @@ export function SetInputModal({ mode, initialData, open, onOpenChange, extraInva
               className="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
             />
           </div>
-        </div>
-      </div>
 
-      {/* 固定フッター（常に画面下部） */}
-      <div className="flex-none border-t bg-background px-4 py-4">
-        {showDeleteConfirm ? (
-          <div className="space-y-3">
-            <p className="text-center text-sm font-medium">このセットを削除しますか？</p>
-            <div className="flex gap-2">
-              <Button
-                type="button"
-                variant="outline"
-                className="flex-1"
-                onClick={() => setShowDeleteConfirm(false)}
-              >
-                キャンセル
-              </Button>
-              <Button
-                type="button"
-                variant="destructive"
-                className="flex-1"
-                disabled={deleteMutation.isPending}
-                onClick={() => deleteMutation.mutate()}
-              >
-                {deleteMutation.isPending ? '削除中...' : '削除する'}
-              </Button>
+          {/* アクションボタン */}
+          {showDeleteConfirm ? (
+            <div className="space-y-3">
+              <p className="text-center text-sm font-medium">このセットを削除しますか？</p>
+              <div className="flex gap-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="flex-1"
+                  onClick={() => setShowDeleteConfirm(false)}
+                >
+                  キャンセル
+                </Button>
+                <Button
+                  type="button"
+                  variant="destructive"
+                  className="flex-1"
+                  disabled={deleteMutation.isPending}
+                  onClick={() => deleteMutation.mutate()}
+                >
+                  {deleteMutation.isPending ? '削除中...' : '削除する'}
+                </Button>
+              </div>
             </div>
-          </div>
-        ) : mode === 'create' ? (
-          <Button
-            type="button"
-            size="lg"
-            className="w-full"
-            disabled={!isValid || isPending}
-            onClick={() => createMutation.mutate()}
-          >
-            {isPending ? '保存中...' : 'セットを追加'}
-          </Button>
-        ) : (
-          <div className="flex flex-col gap-2">
+          ) : mode === 'create' ? (
             <Button
               type="button"
               size="lg"
               className="w-full"
               disabled={!isValid || isPending}
-              onClick={() => updateMutation.mutate()}
+              onClick={() => createMutation.mutate()}
             >
-              {isPending ? '更新中...' : '更新'}
+              {isPending ? '保存中...' : 'セットを追加'}
             </Button>
-            <Button
-              type="button"
-              size="lg"
-              variant="destructive"
-              className="w-full"
-              onClick={() => setShowDeleteConfirm(true)}
-            >
-              削除
-            </Button>
-          </div>
-        )}
+          ) : (
+            <div className="flex flex-col gap-2">
+              <Button
+                type="button"
+                size="lg"
+                className="w-full"
+                disabled={!isValid || isPending}
+                onClick={() => updateMutation.mutate()}
+              >
+                {isPending ? '更新中...' : '更新'}
+              </Button>
+              <Button
+                type="button"
+                size="lg"
+                variant="destructive"
+                className="w-full"
+                onClick={() => setShowDeleteConfirm(true)}
+              >
+                削除
+              </Button>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );
