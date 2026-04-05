@@ -214,7 +214,7 @@ export function SetInputModal({ mode, initialData, open, onOpenChange, variant =
   const [memo, setMemo]                   = useState(initialData?.memo ?? '');
   const [estimated1rm, setEstimated1rm]   = useState<number | null>(null);
   const [nextSetNumber, setNextSetNumber] = useState<number | null>(null);
-  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
   // モーダルを開いたとき初期値を再セット
   useEffect(() => {
@@ -226,6 +226,7 @@ export function SetInputModal({ mode, initialData, open, onOpenChange, variant =
     setReps(initialData?.reps?.toString() ?? '');
     setMemo(initialData?.memo ?? '');
     setNextSetNumber(null);
+    setShowDeleteConfirm(false);
   }, [open]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // 推定1RMをリアルタイム計算
@@ -319,7 +320,7 @@ export function SetInputModal({ mode, initialData, open, onOpenChange, variant =
       queryClient.invalidateQueries({ queryKey: ['sets', 'today'] });
       if (extraInvalidateKey) queryClient.invalidateQueries({ queryKey: extraInvalidateKey });
       toast.success('セットを削除しました');
-      setShowDeleteDialog(false);
+      setShowDeleteConfirm(false);
       onOpenChange(false);
     },
     onError: (e) => toast.error((e as Error).message),
@@ -457,6 +458,31 @@ export function SetInputModal({ mode, initialData, open, onOpenChange, variant =
                 >
                   {isPending ? '保存中...' : 'セットを追加'}
                 </Button>
+              ) : showDeleteConfirm ? (
+                /* インライン削除確認 */
+                <div className="rounded-xl border border-destructive/40 bg-destructive/5 p-4 space-y-3">
+                  <p className="text-sm font-medium text-center">このセットを削除しますか？</p>
+                  <p className="text-xs text-muted-foreground text-center">この操作は取り消せません</p>
+                  <div className="flex gap-2">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      className="flex-1"
+                      onClick={() => setShowDeleteConfirm(false)}
+                    >
+                      キャンセル
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="destructive"
+                      className="flex-1"
+                      disabled={deleteMutation.isPending}
+                      onClick={() => deleteMutation.mutate()}
+                    >
+                      {deleteMutation.isPending ? '削除中...' : '削除する'}
+                    </Button>
+                  </div>
+                </div>
               ) : (
                 <>
                   <Button
@@ -472,7 +498,7 @@ export function SetInputModal({ mode, initialData, open, onOpenChange, variant =
                     size="lg"
                     variant="destructive"
                     className="w-full"
-                    onClick={() => setShowDeleteDialog(true)}
+                    onClick={() => setShowDeleteConfirm(true)}
                   >
                     削除
                   </Button>
@@ -513,32 +539,6 @@ export function SetInputModal({ mode, initialData, open, onOpenChange, variant =
         </Drawer>
       )}
 
-      {/* 削除確認ダイアログ */}
-      <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
-        <DialogContent className="max-w-xs">
-          <DialogHeader>
-            <DialogTitle>セットを削除しますか？</DialogTitle>
-          </DialogHeader>
-          <p className="text-sm text-muted-foreground">この操作は取り消せません。</p>
-          <div className="flex gap-2 pt-2">
-            <Button
-              variant="outline"
-              className="flex-1"
-              onClick={() => setShowDeleteDialog(false)}
-            >
-              キャンセル
-            </Button>
-            <Button
-              variant="destructive"
-              className="flex-1"
-              disabled={deleteMutation.isPending}
-              onClick={() => deleteMutation.mutate()}
-            >
-              削除
-            </Button>
-          </div>
-        </DialogContent>
-      </Dialog>
     </>
   );
 }
