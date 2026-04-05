@@ -2,7 +2,8 @@
 
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { ChevronDown, ChevronUp, Dumbbell } from 'lucide-react';
+import { ChevronDown, ChevronUp, Dumbbell, MessageSquare } from 'lucide-react';
+import { SetInputModal } from '@/components/set/SetInputModal';
 
 // ─── 型 ───────────────────────────────────────────────
 
@@ -44,8 +45,14 @@ function formatDate(dateStr: string) {
 
 // ─── 展開カード ────────────────────────────────────────
 
+type EditTarget = {
+  open: boolean;
+  set: SetDetail & { exerciseId: string; exerciseName: string; workoutDate: string } | null;
+};
+
 function DateCard({ date, summary }: TrainingDate) {
   const [expanded, setExpanded] = useState(false);
+  const [editTarget, setEditTarget] = useState<EditTarget>({ open: false, set: null });
 
   const { data, isLoading } = useQuery<{ data: ExerciseGroup[] }>({
     queryKey: ['sets', 'by-date', date],
@@ -112,21 +119,27 @@ function DateCard({ date, summary }: TrainingDate) {
                   {/* セット一覧 */}
                   <div className="divide-y">
                     {group.sets.map((set) => (
-                      <div key={set.id}>
-                        <div className="grid grid-cols-[2rem_1fr_1fr_1fr] items-center gap-2 px-4 py-2 text-sm">
-                          <span className="text-xs text-muted-foreground">{set.setNumber}</span>
-                          <span>{set.isBodyweight ? '自重' : `${set.weightKg} kg`}</span>
-                          <span>{set.reps} 回</span>
-                          <span className="text-muted-foreground">
-                            {set.estimated1rm != null ? `${set.estimated1rm} kg` : '—'}
-                          </span>
-                        </div>
-                        {set.memo && (
-                          <div className="bg-muted/20 px-4 pb-2 text-xs text-muted-foreground">
-                            <span className="mr-1">📝</span>{set.memo}
-                          </div>
-                        )}
-                      </div>
+                      <button
+                        key={set.id}
+                        type="button"
+                        onClick={() =>
+                          setEditTarget({
+                            open: true,
+                            set: { ...set, exerciseId: group.exerciseId, exerciseName: group.exerciseName, workoutDate: date },
+                          })
+                        }
+                        className="grid min-h-[44px] w-full grid-cols-[2rem_1fr_1fr_1fr] items-center gap-2 px-4 py-2 text-left hover:bg-muted/30 active:bg-muted/50 transition-colors"
+                      >
+                        <span className="text-xs text-muted-foreground">{set.setNumber}</span>
+                        <span className="text-sm">{set.isBodyweight ? '自重' : `${set.weightKg} kg`}</span>
+                        <span className="text-sm">{set.reps} 回</span>
+                        <span className="flex items-center gap-1 text-sm text-muted-foreground">
+                          {set.estimated1rm != null ? `${set.estimated1rm} kg` : '—'}
+                          {set.memo && (
+                            <MessageSquare size={12} className="ml-0.5 shrink-0" />
+                          )}
+                        </span>
+                      </button>
                     ))}
                   </div>
                 </div>
@@ -134,6 +147,28 @@ function DateCard({ date, summary }: TrainingDate) {
             </div>
           )}
         </div>
+      )}
+
+      {/* 編集 Bottom Sheet */}
+      {editTarget.set && (
+        <SetInputModal
+          variant="drawer"
+          mode="edit"
+          open={editTarget.open}
+          onOpenChange={(o) => setEditTarget((prev) => ({ ...prev, open: o }))}
+          extraInvalidateKey={['sets', 'by-date', date]}
+          initialData={{
+            id:           editTarget.set.id,
+            exerciseId:   editTarget.set.exerciseId,
+            exerciseName: editTarget.set.exerciseName,
+            workoutDate:  editTarget.set.workoutDate,
+            setNumber:    editTarget.set.setNumber,
+            isBodyweight: editTarget.set.isBodyweight,
+            weightKg:     editTarget.set.weightKg,
+            reps:         editTarget.set.reps,
+            memo:         editTarget.set.memo,
+          }}
+        />
       )}
     </div>
   );

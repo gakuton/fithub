@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Star } from 'lucide-react';
+import { Star, MessageSquare } from 'lucide-react';
 import { SetInputModal } from '@/components/set/SetInputModal';
 
 type SetRow = {
@@ -64,36 +64,33 @@ export function SetHistoryTable({ sets, exerciseId, exerciseName }: Props) {
             {/* セット行 */}
             <div className="divide-y">
               {rows.map((row) => (
-                <div key={row.id}>
-                  <button
-                    type="button"
-                    onClick={() => setEditTarget({ open: true, set: row })}
-                    className="grid min-h-[44px] w-full grid-cols-[2rem_1fr_1fr_1fr] items-center gap-2 px-4 py-2.5 text-left hover:bg-muted/30 active:bg-muted/50 transition-colors"
-                  >
-                    <span className="text-xs text-muted-foreground">{row.setNumber}</span>
-                    <span className="text-sm">
-                      {row.isBodyweight ? '自重' : `${row.weightKg} kg`}
-                    </span>
-                    <span className="text-sm">{row.reps} 回</span>
-                    <span className="flex items-center gap-1 text-sm">
-                      {row.estimated1rm != null ? (
-                        <>
-                          {row.estimated1rm} kg
-                          {row.isMaxThisDay && (
-                            <Star size={12} className="fill-amber-400 text-amber-400" />
-                          )}
-                        </>
-                      ) : (
-                        <span className="text-muted-foreground">—</span>
-                      )}
-                    </span>
-                  </button>
-                  {row.memo && (
-                    <div className="bg-muted/20 px-4 pb-2 text-xs text-muted-foreground">
-                      <span className="mr-1">📝</span>{row.memo}
-                    </div>
-                  )}
-                </div>
+                <button
+                  key={row.id}
+                  type="button"
+                  onClick={() => setEditTarget({ open: true, set: row })}
+                  className="grid min-h-[44px] w-full grid-cols-[2rem_1fr_1fr_1fr] items-center gap-2 px-4 py-2.5 text-left hover:bg-muted/30 active:bg-muted/50 transition-colors"
+                >
+                  <span className="text-xs text-muted-foreground">{row.setNumber}</span>
+                  <span className="text-sm">
+                    {row.isBodyweight ? '自重' : `${row.weightKg} kg`}
+                  </span>
+                  <span className="text-sm">{row.reps} 回</span>
+                  <span className="flex items-center gap-1 text-sm">
+                    {row.estimated1rm != null ? (
+                      <>
+                        {row.estimated1rm} kg
+                        {row.isMaxThisDay && (
+                          <Star size={12} className="fill-amber-400 text-amber-400" />
+                        )}
+                      </>
+                    ) : (
+                      <span className="text-muted-foreground">—</span>
+                    )}
+                    {row.memo && (
+                      <MessageSquare size={12} className="ml-0.5 shrink-0 text-muted-foreground" />
+                    )}
+                  </span>
+                </button>
               ))}
             </div>
           </div>
