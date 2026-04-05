@@ -2,8 +2,9 @@
 
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { Dumbbell } from 'lucide-react';
+import { Dumbbell, AlertCircle } from 'lucide-react';
 import { SetInputModal } from '@/components/set/SetInputModal';
+import { EmptyState } from '@/components/common/EmptyState';
 
 type SetRow = {
   setId: string;
@@ -33,7 +34,7 @@ export function TodaySetList() {
     set: SetRow | null;
   }>({ open: false, set: null });
 
-  const { data, isLoading } = useQuery<{ data: GroupedExercise[] }>({
+  const { data, isLoading, isError } = useQuery<{ data: GroupedExercise[] }>({
     queryKey: ['sets', 'today'],
     queryFn: () => fetch('/api/sets/today').then((r) => r.json()),
     staleTime: 0,
@@ -45,11 +46,11 @@ export function TodaySetList() {
     return (
       <div className="space-y-3">
         {[...Array(2)].map((_, i) => (
-          <div key={i} className="animate-pulse rounded-xl border bg-card p-4">
-            <div className="mb-3 h-4 w-24 rounded bg-muted" />
+          <div key={i} className="animate-pulse rounded-2xl border bg-card p-4">
+            <div className="mb-3 h-4 w-24 rounded-full bg-muted" />
             <div className="space-y-2">
-              <div className="h-10 rounded bg-muted" />
-              <div className="h-10 rounded bg-muted" />
+              <div className="h-11 rounded-xl bg-muted" />
+              <div className="h-11 rounded-xl bg-muted" />
             </div>
           </div>
         ))}
@@ -57,12 +58,15 @@ export function TodaySetList() {
     );
   }
 
+  if (isError) {
+    return (
+      <EmptyState icon={AlertCircle} message="データの取得に失敗しました" sub="しばらく経ってから再度お試しください" />
+    );
+  }
+
   if (groups.length === 0) {
     return (
-      <div className="rounded-xl border bg-card p-8 text-center">
-        <Dumbbell className="mx-auto mb-3 text-muted-foreground" size={32} />
-        <p className="text-sm text-muted-foreground">今日のトレーニングはまだありません</p>
-      </div>
+      <EmptyState icon={Dumbbell} message="今日のトレーニングはまだありません" sub="下のボタンからセットを追加しましょう" />
     );
   }
 
@@ -70,18 +74,16 @@ export function TodaySetList() {
     <>
       <div className="space-y-3">
         {groups.map((group) => (
-          <div key={group.exerciseId} className="rounded-xl border bg-card overflow-hidden">
-            {/* 種目ヘッダー */}
-            <div className="flex items-center gap-2 border-b bg-muted/40 px-4 py-2">
+          <div key={group.exerciseId} className="rounded-2xl border bg-card overflow-hidden">
+            <div className="flex items-center gap-2 border-b bg-primary/5 px-4 py-2.5">
               <span className="font-semibold text-sm">{group.exerciseName}</span>
               {group.category && (
-                <span className="rounded-full bg-primary/10 px-2 py-0.5 text-xs text-primary">
+                <span className="rounded-full bg-primary/15 px-2 py-0.5 text-xs text-primary font-medium">
                   {group.category}
                 </span>
               )}
             </div>
 
-            {/* セット行 */}
             <div className="divide-y">
               {group.sets.map((set) => (
                 <button
@@ -90,19 +92,14 @@ export function TodaySetList() {
                   onClick={() => setEditTarget({ open: true, set })}
                   className="flex min-h-[44px] w-full items-center gap-3 px-4 py-3 text-left hover:bg-muted/30 active:bg-muted/50 transition-colors"
                 >
-                  {/* セット番号 */}
                   <span className="w-14 shrink-0 text-xs font-medium text-muted-foreground">
                     セット {set.setNumber}
                   </span>
-
-                  {/* 重量 × 回数 */}
                   <span className="flex-1 text-sm font-medium">
                     {set.isBodyweight ? '自重' : `${set.weightKg} kg`}
                     {' × '}
                     {set.reps} 回
                   </span>
-
-                  {/* 推定1RM */}
                   <span className="text-xs text-muted-foreground">
                     {set.estimated1rm != null ? `1RM ${set.estimated1rm} kg` : '—'}
                   </span>
@@ -113,7 +110,6 @@ export function TodaySetList() {
         ))}
       </div>
 
-      {/* 編集モーダル */}
       {editTarget.set && (
         <SetInputModal
           variant="drawer"

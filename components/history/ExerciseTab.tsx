@@ -2,14 +2,15 @@
 
 import { useQuery } from '@tanstack/react-query';
 import { useRouter } from 'next/navigation';
-import { ChevronRight, Dumbbell } from 'lucide-react';
+import { ChevronRight, Dumbbell, AlertCircle } from 'lucide-react';
+import { EmptyState } from '@/components/common/EmptyState';
 
 type Exercise = { id: string; name: string; category: string | null };
 
 export function ExerciseTab() {
   const router = useRouter();
 
-  const { data, isLoading } = useQuery<{ data: Exercise[] }>({
+  const { data, isLoading, isError } = useQuery<{ data: Exercise[] }>({
     queryKey: ['exercises'],
     queryFn: () => fetch('/api/exercises').then((r) => r.json()),
     staleTime: 5 * 60_000,
@@ -21,22 +22,20 @@ export function ExerciseTab() {
     return (
       <div className="space-y-2">
         {[...Array(6)].map((_, i) => (
-          <div key={i} className="animate-pulse h-14 rounded-xl border bg-card" />
+          <div key={i} className="animate-pulse h-14 rounded-2xl border bg-card" />
         ))}
       </div>
     );
   }
 
-  if (exercises.length === 0) {
-    return (
-      <div className="rounded-xl border bg-card p-8 text-center text-sm text-muted-foreground">
-        <Dumbbell className="mx-auto mb-3 text-muted-foreground" size={32} />
-        種目がありません
-      </div>
-    );
+  if (isError) {
+    return <EmptyState icon={AlertCircle} message="データの取得に失敗しました" />;
   }
 
-  // カテゴリ別にグループ化
+  if (exercises.length === 0) {
+    return <EmptyState icon={Dumbbell} message="種目がありません" sub="セット追加時に種目を登録できます" />;
+  }
+
   const groups = new Map<string, Exercise[]>();
   for (const ex of exercises) {
     const cat = ex.category ?? 'その他';
@@ -48,8 +47,10 @@ export function ExerciseTab() {
     <div className="space-y-4">
       {Array.from(groups.entries()).map(([category, list]) => (
         <div key={category}>
-          <p className="mb-2 px-1 text-xs font-semibold text-muted-foreground">{category}</p>
-          <div className="overflow-hidden rounded-xl border bg-card divide-y">
+          <p className="mb-2 px-1 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+            {category}
+          </p>
+          <div className="overflow-hidden rounded-2xl border bg-card divide-y">
             {list.map((ex) => (
               <button
                 key={ex.id}

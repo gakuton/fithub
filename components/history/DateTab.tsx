@@ -2,8 +2,9 @@
 
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { ChevronDown, ChevronUp, Dumbbell, MessageSquare } from 'lucide-react';
+import { ChevronDown, ChevronUp, Dumbbell, MessageSquare, AlertCircle } from 'lucide-react';
 import { SetInputModal } from '@/components/set/SetInputModal';
+import { EmptyState } from '@/components/common/EmptyState';
 
 // ─── 型 ───────────────────────────────────────────────
 
@@ -64,8 +65,7 @@ function DateCard({ date, summary }: TrainingDate) {
   const groups = data?.data ?? [];
 
   return (
-    <div className="overflow-hidden rounded-xl border bg-card">
-      {/* カードヘッダー（タップで展開） */}
+    <div className="overflow-hidden rounded-2xl border bg-card">
       <button
         type="button"
         onClick={() => setExpanded((v) => !v)}
@@ -91,13 +91,12 @@ function DateCard({ date, summary }: TrainingDate) {
         )}
       </button>
 
-      {/* 展開コンテンツ */}
       {expanded && (
         <div className="border-t">
           {isLoading ? (
             <div className="space-y-2 p-4">
               {[...Array(3)].map((_, i) => (
-                <div key={i} className="h-8 animate-pulse rounded bg-muted" />
+                <div key={i} className="h-8 animate-pulse rounded-xl bg-muted" />
               ))}
             </div>
           ) : groups.length === 0 ? (
@@ -106,17 +105,15 @@ function DateCard({ date, summary }: TrainingDate) {
             <div className="divide-y">
               {groups.map((group) => (
                 <div key={group.exerciseId}>
-                  {/* 種目名 */}
-                  <div className="flex items-center gap-2 bg-muted/30 px-4 py-2">
+                  <div className="flex items-center gap-2 bg-primary/5 px-4 py-2">
                     <span className="text-xs font-semibold">{group.exerciseName}</span>
                     {group.exerciseCategory && (
-                      <span className="rounded-full bg-primary/10 px-1.5 py-0.5 text-[10px] text-primary">
+                      <span className="rounded-full bg-primary/15 px-1.5 py-0.5 text-[10px] text-primary font-medium">
                         {group.exerciseCategory}
                       </span>
                     )}
                   </div>
 
-                  {/* セット一覧 */}
                   <div className="divide-y">
                     {group.sets.map((set) => (
                       <button
@@ -149,7 +146,6 @@ function DateCard({ date, summary }: TrainingDate) {
         </div>
       )}
 
-      {/* 編集 Bottom Sheet */}
       {editTarget.set && (
         <SetInputModal
           variant="drawer"
@@ -177,7 +173,7 @@ function DateCard({ date, summary }: TrainingDate) {
 // ─── メインコンポーネント ──────────────────────────────
 
 export function DateTab() {
-  const { data, isLoading } = useQuery<{ data: TrainingDate[] }>({
+  const { data, isLoading, isError } = useQuery<{ data: TrainingDate[] }>({
     queryKey: ['sets', 'training-dates'],
     queryFn: () => fetch('/api/sets/training-dates').then((r) => r.json()),
     staleTime: 0,
@@ -189,18 +185,23 @@ export function DateTab() {
     return (
       <div className="space-y-3">
         {[...Array(3)].map((_, i) => (
-          <div key={i} className="h-16 animate-pulse rounded-xl border bg-card" />
+          <div key={i} className="h-16 animate-pulse rounded-2xl border bg-card" />
         ))}
       </div>
     );
   }
 
+  if (isError) {
+    return <EmptyState icon={AlertCircle} message="データの取得に失敗しました" />;
+  }
+
   if (dates.length === 0) {
     return (
-      <div className="rounded-xl border bg-card p-8 text-center">
-        <Dumbbell className="mx-auto mb-3 text-muted-foreground" size={32} />
-        <p className="text-sm text-muted-foreground">トレーニング記録がありません</p>
-      </div>
+      <EmptyState
+        icon={Dumbbell}
+        message="トレーニング記録がありません"
+        sub="ホーム画面からセットを追加しましょう"
+      />
     );
   }
 
