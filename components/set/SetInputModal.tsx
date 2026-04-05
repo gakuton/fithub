@@ -13,6 +13,12 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
+import {
+  Drawer,
+  DrawerContent,
+  DrawerHeader,
+  DrawerTitle,
+} from '@/components/ui/drawer';
 import { calcEstimated1rm } from '@/lib/utils/1rm';
 import { localToday } from '@/lib/utils/date';
 
@@ -36,6 +42,9 @@ type Props = {
   initialData?: SetData;
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  variant?: 'dialog' | 'drawer';
+  /** 更新・削除後に呼ぶ追加の invalidate queryKey */
+  extraInvalidateKey?: unknown[];
 };
 
 // ─── 種目ピッカー ──────────────────────────────────────
@@ -192,7 +201,7 @@ function ExercisePicker({
 }
 
 // ─── メインコンポーネント ──────────────────────────────
-export function SetInputModal({ mode, initialData, open, onOpenChange }: Props) {
+export function SetInputModal({ mode, initialData, open, onOpenChange, variant = 'dialog', extraInvalidateKey }: Props) {
   const queryClient = useQueryClient();
   const today = localToday();
 
@@ -293,6 +302,7 @@ export function SetInputModal({ mode, initialData, open, onOpenChange }: Props) 
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['sets', 'today'] });
+      if (extraInvalidateKey) queryClient.invalidateQueries({ queryKey: extraInvalidateKey });
       toast.success('セットを更新しました');
       onOpenChange(false);
     },
@@ -307,6 +317,7 @@ export function SetInputModal({ mode, initialData, open, onOpenChange }: Props) 
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['sets', 'today'] });
+      if (extraInvalidateKey) queryClient.invalidateQueries({ queryKey: extraInvalidateKey });
       toast.success('セットを削除しました');
       setShowDeleteDialog(false);
       onOpenChange(false);
@@ -316,32 +327,15 @@ export function SetInputModal({ mode, initialData, open, onOpenChange }: Props) 
 
   const isPending = createMutation.isPending || updateMutation.isPending;
 
-  return (
-    <>
-      <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent
-          showCloseButton={false}
-          className="max-h-[90dvh] w-full max-w-lg overflow-y-auto p-0"
-        >
-          {/* ヘッダー */}
-          <DialogHeader className="flex-row items-center justify-between border-b px-4 py-3">
-            <DialogTitle>
-              {mode === 'create'
-                ? nextSetNumber != null
-                  ? `次はセット ${nextSetNumber}`
-                  : 'セットを追加'
-                : `セット ${initialData?.setNumber} を編集`}
-            </DialogTitle>
-            <button
-              type="button"
-              onClick={() => onOpenChange(false)}
-              className="rounded-full p-1 hover:bg-muted"
-            >
-              <X size={18} />
-            </button>
-          </DialogHeader>
+  const title =
+    mode === 'create'
+      ? nextSetNumber != null
+        ? `次はセット ${nextSetNumber}`
+        : 'セットを追加'
+      : `セット ${initialData?.setNumber} を編集`;
 
-          <form
+  const formContent = (
+    <form
             className="flex flex-col gap-4 px-4 py-4"
             onSubmit={(e) => {
               e.preventDefault();
@@ -485,9 +479,39 @@ export function SetInputModal({ mode, initialData, open, onOpenChange }: Props) 
                 </>
               )}
             </div>
-          </form>
-        </DialogContent>
-      </Dialog>
+    </form>
+  );
+
+  return (
+    <>
+      {variant === 'dialog' ? (
+        <Dialog open={open} onOpenChange={onOpenChange}>
+          <DialogContent
+            showCloseButton={false}
+            className="max-h-[90dvh] w-full max-w-lg overflow-y-auto p-0"
+          >
+            <DialogHeader className="flex-row items-center justify-between border-b px-4 py-3">
+              <DialogTitle>{title}</DialogTitle>
+              <button type="button" onClick={() => onOpenChange(false)} className="rounded-full p-1 hover:bg-muted">
+                <X size={18} />
+              </button>
+            </DialogHeader>
+            {formContent}
+          </DialogContent>
+        </Dialog>
+      ) : (
+        <Drawer open={open} onOpenChange={onOpenChange}>
+          <DrawerContent className="max-h-[90dvh] overflow-y-auto">
+            <DrawerHeader className="flex-row items-center justify-between border-b px-4 py-3 text-left">
+              <DrawerTitle>{title}</DrawerTitle>
+              <button type="button" onClick={() => onOpenChange(false)} className="rounded-full p-1 hover:bg-muted">
+                <X size={18} />
+              </button>
+            </DrawerHeader>
+            {formContent}
+          </DrawerContent>
+        </Drawer>
+      )}
 
       {/* 削除確認ダイアログ */}
       <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
