@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { TodaySetList } from '@/components/home/TodaySetList';
+import { BodyCompositionSummary } from '@/components/home/BodyCompositionSummary';
 import { SetInputModal } from '@/components/set/SetInputModal';
 import { localToday } from '@/lib/utils/date';
 
@@ -21,6 +22,11 @@ export default function HomePage() {
           <span className="ml-2 text-xs font-normal">{localToday()}</span>
         </h2>
         <TodaySetList />
+      </section>
+
+      <section className="mb-6">
+        <h2 className="mb-3 text-base font-semibold text-muted-foreground">体組成</h2>
+        <BodyCompositionSummary />
       </section>
 
       <div className="flex flex-col gap-3">
