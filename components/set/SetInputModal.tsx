@@ -7,18 +7,6 @@ import { X, Plus, ChevronDown } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog';
-import {
-  Drawer,
-  DrawerContent,
-  DrawerHeader,
-  DrawerTitle,
-} from '@/components/ui/drawer';
 import { calcEstimated1rm } from '@/lib/utils/1rm';
 import { localToday } from '@/lib/utils/date';
 
@@ -42,8 +30,7 @@ type Props = {
   initialData?: SetData;
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  variant?: 'dialog' | 'drawer';
-  /** 更新・削除後に呼ぶ追加の invalidate queryKey */
+  variant?: 'dialog' | 'drawer'; // 後方互換のため残存（実装は常にフルスクリーン）
   extraInvalidateKey?: unknown[];
 };
 
@@ -70,7 +57,6 @@ function ExercisePicker({
     ? exercises.filter((e) => e.name.includes(query))
     : exercises;
 
-  // 外側クリックで閉じる
   useEffect(() => {
     const handler = (e: MouseEvent) => {
       if (ref.current && !ref.current.contains(e.target as Node)) {
@@ -127,7 +113,6 @@ function ExercisePicker({
             />
           </div>
 
-          {/* カテゴリー別グループ表示 */}
           {(() => {
             const groups = new Map<string, Exercise[]>();
             for (const ex of filtered) {
@@ -158,7 +143,6 @@ function ExercisePicker({
             <p className="px-3 py-2 text-sm text-muted-foreground">見つかりません</p>
           )}
 
-          {/* 新規追加 */}
           <div className="border-t p-2">
             {showNewInput ? (
               <div className="flex gap-2">
@@ -201,11 +185,10 @@ function ExercisePicker({
 }
 
 // ─── メインコンポーネント ──────────────────────────────
-export function SetInputModal({ mode, initialData, open, onOpenChange, variant = 'dialog', extraInvalidateKey }: Props) {
+export function SetInputModal({ mode, initialData, open, onOpenChange, extraInvalidateKey }: Props) {
   const queryClient = useQueryClient();
   const today = localToday();
 
-  // フォーム state
   const [exerciseId, setExerciseId]       = useState(initialData?.exerciseId ?? '');
   const [workoutDate, setWorkoutDate]     = useState(initialData?.workoutDate ?? today);
   const [isBodyweight, setIsBodyweight]   = useState(initialData?.isBodyweight ?? false);
@@ -229,7 +212,17 @@ export function SetInputModal({ mode, initialData, open, onOpenChange, variant =
     setShowDeleteConfirm(false);
   }, [open]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // 推定1RMをリアルタイム計算
+  // body スクロールロック
+  useEffect(() => {
+    if (open) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+    return () => { document.body.style.overflow = ''; };
+  }, [open]);
+
+  // 推定1RM リアルタイム計算
   useEffect(() => {
     if (isBodyweight) { setEstimated1rm(null); return; }
     const w = parseFloat(weightKg);
@@ -241,7 +234,6 @@ export function SetInputModal({ mode, initialData, open, onOpenChange, variant =
     }
   }, [weightKg, reps, isBodyweight]);
 
-  // 種目一覧取得
   const { data: exercisesData } = useQuery<{ data: Exercise[] }>({
     queryKey: ['exercises'],
     queryFn: () => fetch('/api/exercises').then((r) => r.json()),
@@ -249,14 +241,12 @@ export function SetInputModal({ mode, initialData, open, onOpenChange, variant =
   });
   const exercises = exercisesData?.data ?? [];
 
-  // バリデーション
   const isValid =
     exerciseId !== '' &&
     reps !== '' &&
     parseInt(reps, 10) >= 1 &&
     (isBodyweight || weightKg !== '');
 
-  // ─ CREATE
   const createMutation = useMutation({
     mutationFn: async () => {
       const res = await fetch('/api/sets', {
@@ -278,13 +268,11 @@ export function SetInputModal({ mode, initialData, open, onOpenChange, variant =
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['sets', 'today'] });
       if (data.isPersonalBest) toast.success('🎉 自己ベスト更新！');
-      // 連続記録UX: モーダルを維持・セット番号を更新
       setNextSetNumber(data.setNumber + 1);
     },
     onError: (e) => toast.error((e as Error).message),
   });
 
-  // ─ UPDATE
   const updateMutation = useMutation({
     mutationFn: async () => {
       const res = await fetch(`/api/sets/${initialData!.id}`, {
@@ -310,7 +298,6 @@ export function SetInputModal({ mode, initialData, open, onOpenChange, variant =
     onError: (e) => toast.error((e as Error).message),
   });
 
-  // ─ DELETE
   const deleteMutation = useMutation({
     mutationFn: async () => {
       const res = await fetch(`/api/sets/${initialData!.id}`, { method: 'DELETE' });
@@ -335,210 +322,188 @@ export function SetInputModal({ mode, initialData, open, onOpenChange, variant =
         : 'セットを追加'
       : `セット ${initialData?.setNumber} を編集`;
 
-  const formContent = (
-    <form
-            className="flex flex-col gap-4 px-4 py-4"
-            onSubmit={(e) => {
-              e.preventDefault();
-              if (mode === 'create') createMutation.mutate();
-              else updateMutation.mutate();
-            }}
-          >
-            {/* 種目選択（create のみ） */}
-            {mode === 'create' && (
-              <div className="space-y-1.5">
-                <Label>種目</Label>
-                <ExercisePicker
-                  exercises={exercises}
-                  value={exerciseId}
-                  onChange={setExerciseId}
-                />
-              </div>
-            )}
+  if (!open) return null;
 
-            {/* edit 時：種目名表示 */}
-            {mode === 'edit' && (
-              <div className="rounded-lg bg-muted px-3 py-2 text-sm font-medium">
-                {initialData?.exerciseName ?? ''}
-              </div>
-            )}
+  return (
+    <div className="fixed inset-0 z-50 flex flex-col bg-background">
+      {/* 固定ヘッダー */}
+      <div className="flex-none flex items-center justify-between border-b px-4 py-3">
+        <h2 className="text-base font-semibold">{title}</h2>
+        <button
+          type="button"
+          onClick={() => onOpenChange(false)}
+          className="flex h-9 w-9 items-center justify-center rounded-full hover:bg-muted"
+        >
+          <X size={18} />
+        </button>
+      </div>
 
-            {/* 自重トグル */}
-            <div className="flex items-center justify-between">
-              <Label htmlFor="bodyweight">自重</Label>
-              <button
-                id="bodyweight"
-                type="button"
-                role="switch"
-                aria-checked={isBodyweight}
-                onClick={() => setIsBodyweight((v) => !v)}
-                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                  isBodyweight ? 'bg-primary' : 'bg-input'
-                }`}
-              >
-                <span
-                  className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${
-                    isBodyweight ? 'translate-x-6' : 'translate-x-1'
-                  }`}
-                />
-              </button>
-            </div>
-
-            {/* 重量 */}
-            {!isBodyweight && (
-              <div className="space-y-1.5">
-                <Label htmlFor="weight">重量 (kg)</Label>
-                <Input
-                  id="weight"
-                  inputMode="decimal"
-                  placeholder="60"
-                  value={weightKg}
-                  onChange={(e) => setWeightKg(e.target.value)}
-                  className="h-11 text-base"
-                />
-              </div>
-            )}
-
-            {/* 回数 */}
+      {/* スクロール可能なフォームエリア */}
+      <div className="flex-1 overflow-y-auto">
+        <div className="flex flex-col gap-4 px-4 py-4">
+          {/* 種目選択（create のみ） */}
+          {mode === 'create' && (
             <div className="space-y-1.5">
-              <Label htmlFor="reps">回数</Label>
+              <Label>種目</Label>
+              <ExercisePicker
+                exercises={exercises}
+                value={exerciseId}
+                onChange={setExerciseId}
+              />
+            </div>
+          )}
+
+          {/* edit 時：種目名表示 */}
+          {mode === 'edit' && (
+            <div className="rounded-lg bg-muted px-3 py-2.5 text-sm font-medium">
+              {initialData?.exerciseName ?? ''}
+            </div>
+          )}
+
+          {/* 自重トグル */}
+          <div className="flex items-center justify-between">
+            <Label htmlFor="bodyweight">自重</Label>
+            <button
+              id="bodyweight"
+              type="button"
+              role="switch"
+              aria-checked={isBodyweight}
+              onClick={() => setIsBodyweight((v) => !v)}
+              className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+                isBodyweight ? 'bg-primary' : 'bg-input'
+              }`}
+            >
+              <span
+                className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${
+                  isBodyweight ? 'translate-x-6' : 'translate-x-1'
+                }`}
+              />
+            </button>
+          </div>
+
+          {/* 重量 */}
+          {!isBodyweight && (
+            <div className="space-y-1.5">
+              <Label htmlFor="weight">重量 (kg)</Label>
               <Input
-                id="reps"
-                inputMode="numeric"
-                placeholder="10"
-                value={reps}
-                onChange={(e) => setReps(e.target.value)}
+                id="weight"
+                inputMode="decimal"
+                placeholder="60"
+                value={weightKg}
+                onChange={(e) => setWeightKg(e.target.value)}
                 className="h-11 text-base"
               />
             </div>
+          )}
 
-            {/* 推定1RM */}
-            {!isBodyweight && estimated1rm !== null && (
-              <div className="rounded-lg bg-primary/10 px-4 py-3 text-center">
-                <p className="text-xs text-muted-foreground">推定1RM</p>
-                <p className="text-2xl font-bold text-primary">{estimated1rm} kg</p>
-              </div>
-            )}
+          {/* 回数 */}
+          <div className="space-y-1.5">
+            <Label htmlFor="reps">回数</Label>
+            <Input
+              id="reps"
+              inputMode="numeric"
+              placeholder="10"
+              value={reps}
+              onChange={(e) => setReps(e.target.value)}
+              className="h-11 text-base"
+            />
+          </div>
 
-            {/* 日付 */}
-            <div className="space-y-1.5">
-              <Label htmlFor="date">日付</Label>
-              <Input
-                id="date"
-                type="date"
-                value={workoutDate}
-                max={today}
-                onChange={(e) => setWorkoutDate(e.target.value)}
-                className="h-11"
-              />
+          {/* 推定1RM */}
+          {!isBodyweight && estimated1rm !== null && (
+            <div className="rounded-lg bg-primary/10 px-4 py-3 text-center">
+              <p className="text-xs text-muted-foreground">推定1RM</p>
+              <p className="text-2xl font-bold text-primary">{estimated1rm} kg</p>
             </div>
+          )}
 
-            {/* メモ */}
-            <div className="space-y-1.5">
-              <Label htmlFor="memo">メモ（任意）</Label>
-              <textarea
-                id="memo"
-                value={memo}
-                onChange={(e) => setMemo(e.target.value)}
-                maxLength={200}
-                rows={2}
-                placeholder="フォームのメモなど..."
-                className="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
-              />
+          {/* 日付 */}
+          <div className="space-y-1.5">
+            <Label htmlFor="date">日付</Label>
+            <Input
+              id="date"
+              type="date"
+              value={workoutDate}
+              max={today}
+              onChange={(e) => setWorkoutDate(e.target.value)}
+              className="h-11"
+            />
+          </div>
+
+          {/* メモ */}
+          <div className="space-y-1.5">
+            <Label htmlFor="memo">メモ（任意）</Label>
+            <textarea
+              id="memo"
+              value={memo}
+              onChange={(e) => setMemo(e.target.value)}
+              maxLength={200}
+              rows={2}
+              placeholder="フォームのメモなど..."
+              className="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+            />
+          </div>
+        </div>
+      </div>
+
+      {/* 固定フッター（常に画面下部） */}
+      <div className="flex-none border-t bg-background px-4 py-4">
+        {showDeleteConfirm ? (
+          <div className="space-y-3">
+            <p className="text-center text-sm font-medium">このセットを削除しますか？</p>
+            <div className="flex gap-2">
+              <Button
+                type="button"
+                variant="outline"
+                className="flex-1"
+                onClick={() => setShowDeleteConfirm(false)}
+              >
+                キャンセル
+              </Button>
+              <Button
+                type="button"
+                variant="destructive"
+                className="flex-1"
+                disabled={deleteMutation.isPending}
+                onClick={() => deleteMutation.mutate()}
+              >
+                {deleteMutation.isPending ? '削除中...' : '削除する'}
+              </Button>
             </div>
-
-            {/* アクションボタン */}
-            <div className="flex flex-col gap-2 pt-1">
-              {mode === 'create' ? (
-                <Button
-                  type="submit"
-                  size="lg"
-                  className="w-full"
-                  disabled={!isValid || isPending}
-                >
-                  {isPending ? '保存中...' : 'セットを追加'}
-                </Button>
-              ) : showDeleteConfirm ? (
-                /* インライン削除確認 */
-                <div className="rounded-xl border border-destructive/40 bg-destructive/5 p-4 space-y-3">
-                  <p className="text-sm font-medium text-center">このセットを削除しますか？</p>
-                  <p className="text-xs text-muted-foreground text-center">この操作は取り消せません</p>
-                  <div className="flex gap-2">
-                    <Button
-                      type="button"
-                      variant="outline"
-                      className="flex-1"
-                      onClick={() => setShowDeleteConfirm(false)}
-                    >
-                      キャンセル
-                    </Button>
-                    <Button
-                      type="button"
-                      variant="destructive"
-                      className="flex-1"
-                      disabled={deleteMutation.isPending}
-                      onClick={() => deleteMutation.mutate()}
-                    >
-                      {deleteMutation.isPending ? '削除中...' : '削除する'}
-                    </Button>
-                  </div>
-                </div>
-              ) : (
-                <>
-                  <Button
-                    type="submit"
-                    size="lg"
-                    className="w-full"
-                    disabled={!isValid || isPending}
-                  >
-                    {isPending ? '更新中...' : '更新'}
-                  </Button>
-                  <Button
-                    type="button"
-                    size="lg"
-                    variant="destructive"
-                    className="w-full"
-                    onClick={() => setShowDeleteConfirm(true)}
-                  >
-                    削除
-                  </Button>
-                </>
-              )}
-            </div>
-    </form>
-  );
-
-  return (
-    <>
-      {variant === 'dialog' ? (
-        <Dialog open={open} onOpenChange={onOpenChange}>
-          <DialogContent
-            showCloseButton={false}
-            className="max-h-[90dvh] w-full max-w-lg overflow-y-auto p-0"
+          </div>
+        ) : mode === 'create' ? (
+          <Button
+            type="button"
+            size="lg"
+            className="w-full"
+            disabled={!isValid || isPending}
+            onClick={() => createMutation.mutate()}
           >
-            <DialogHeader className="flex-row items-center justify-between border-b px-4 py-3">
-              <DialogTitle>{title}</DialogTitle>
-              <button type="button" onClick={() => onOpenChange(false)} className="rounded-full p-1 hover:bg-muted">
-                <X size={18} />
-              </button>
-            </DialogHeader>
-            {formContent}
-          </DialogContent>
-        </Dialog>
-      ) : (
-        <Drawer open={open} onOpenChange={onOpenChange}>
-          <DrawerContent className="max-h-[90dvh] overflow-y-auto">
-            <DrawerHeader className="flex-row items-center justify-between border-b px-4 py-3 text-left">
-              <DrawerTitle>{title}</DrawerTitle>
-              <button type="button" onClick={() => onOpenChange(false)} className="rounded-full p-1 hover:bg-muted">
-                <X size={18} />
-              </button>
-            </DrawerHeader>
-            {formContent}
-          </DrawerContent>
-        </Drawer>
-      )}
-
-    </>
+            {isPending ? '保存中...' : 'セットを追加'}
+          </Button>
+        ) : (
+          <div className="flex flex-col gap-2">
+            <Button
+              type="button"
+              size="lg"
+              className="w-full"
+              disabled={!isValid || isPending}
+              onClick={() => updateMutation.mutate()}
+            >
+              {isPending ? '更新中...' : '更新'}
+            </Button>
+            <Button
+              type="button"
+              size="lg"
+              variant="destructive"
+              className="w-full"
+              onClick={() => setShowDeleteConfirm(true)}
+            >
+              削除
+            </Button>
+          </div>
+        )}
+      </div>
+    </div>
   );
 }
