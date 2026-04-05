@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { ExerciseTab } from '@/components/history/ExerciseTab';
+import { DateTab } from '@/components/history/DateTab';
 
 type Tab = 'date' | 'exercise';
 
@@ -29,13 +30,7 @@ export default function HistoryPage() {
         ))}
       </div>
 
-      {tab === 'exercise' ? (
-        <ExerciseTab />
-      ) : (
-        <div className="rounded-xl border bg-card p-8 text-center text-sm text-muted-foreground">
-          日付別の記録がここに表示されます（PR-08 で実装）
-        </div>
-      )}
+      {tab === 'exercise' ? <ExerciseTab /> : <DateTab />}
     </div>
   );
 }
