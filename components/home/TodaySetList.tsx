@@ -116,6 +116,7 @@ export function TodaySetList() {
       {/* 編集モーダル */}
       {editTarget.set && (
         <SetInputModal
+          variant="drawer"
           mode="edit"
           open={editTarget.open}
           onOpenChange={(o) => setEditTarget((prev) => ({ ...prev, open: o }))}

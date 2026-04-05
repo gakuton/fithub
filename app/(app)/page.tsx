@@ -37,6 +37,7 @@ export default function HomePage() {
       </div>
 
       <SetInputModal
+        variant="drawer"
         mode="create"
         open={modalOpen}
         onOpenChange={setModalOpen}
