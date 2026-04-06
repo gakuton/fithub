@@ -4,8 +4,11 @@ import { localToday } from '@/lib/utils/date';
 import { db } from '@/lib/db';
 import { exercises, workoutSets } from '@/lib/db/schema';
 
-export async function GET() {
-  const today = localToday();
+export async function GET(request: Request) {
+  const { searchParams } = new URL(request.url);
+  const dateParam = searchParams.get('date');
+  // クライアントから日付を受け取る（YYYY-MM-DD 形式のみ許可）
+  const today = /^\d{4}-\d{2}-\d{2}$/.test(dateParam ?? '') ? dateParam! : localToday();
 
   const rows = await db
     .select({

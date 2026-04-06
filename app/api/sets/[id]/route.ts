@@ -47,6 +47,7 @@ export async function PATCH(req: Request, { params }: Params) {
   const [updated] = await db
     .update(workoutSets)
     .set({
+      exerciseId:    patch.exerciseId ?? existing.exerciseId,
       isBodyweight:  nextIsBodyweight,
       weightKg:      nextWeightKg,
       reps:          nextReps,

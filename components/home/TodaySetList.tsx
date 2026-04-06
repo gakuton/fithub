@@ -5,6 +5,7 @@ import { useQuery } from '@tanstack/react-query';
 import { Dumbbell, AlertCircle } from 'lucide-react';
 import { SetInputModal } from '@/components/set/SetInputModal';
 import { EmptyState } from '@/components/common/EmptyState';
+import { localToday } from '@/lib/utils/date';
 
 type SetRow = {
   setId: string;
@@ -34,9 +35,11 @@ export function TodaySetList() {
     set: SetRow | null;
   }>({ open: false, set: null });
 
+  const today = localToday();
+
   const { data, isLoading, isError } = useQuery<{ data: GroupedExercise[] }>({
-    queryKey: ['sets', 'today'],
-    queryFn: () => fetch('/api/sets/today').then((r) => r.json()),
+    queryKey: ['sets', 'today', today],
+    queryFn: () => fetch(`/api/sets/today?date=${today}`).then((r) => r.json()),
     staleTime: 0,
   });
 

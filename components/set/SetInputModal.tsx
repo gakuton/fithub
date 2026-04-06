@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import { X, Plus, ChevronDown } from 'lucide-react';
+import { X, ChevronDown } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -46,10 +46,7 @@ function ExercisePicker({
 }) {
   const [query, setQuery] = useState('');
   const [open, setOpen] = useState(false);
-  const [showNewInput, setShowNewInput] = useState(false);
-  const [newName, setNewName] = useState('');
   const ref = useRef<HTMLDivElement>(null);
-  const queryClient = useQueryClient();
 
   const selected = exercises.find((e) => e.id === value);
 
@@ -66,27 +63,6 @@ function ExercisePicker({
     document.addEventListener('mousedown', handler);
     return () => document.removeEventListener('mousedown', handler);
   }, []);
-
-  const addExercise = useMutation({
-    mutationFn: async (name: string) => {
-      const res = await fetch('/api/exercises', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name }),
-      });
-      const json = await res.json();
-      if (!res.ok) throw new Error(json.error ?? '追加に失敗しました');
-      return json.data as Exercise;
-    },
-    onSuccess: (newEx) => {
-      queryClient.invalidateQueries({ queryKey: ['exercises'] });
-      onChange(newEx.id);
-      setShowNewInput(false);
-      setNewName('');
-      setOpen(false);
-    },
-    onError: (e) => toast.error((e as Error).message),
-  });
 
   return (
     <div ref={ref} className="relative">
@@ -142,42 +118,6 @@ function ExercisePicker({
           {filtered.length === 0 && (
             <p className="px-3 py-2 text-sm text-muted-foreground">見つかりません</p>
           )}
-
-          <div className="border-t p-2">
-            {showNewInput ? (
-              <div className="flex gap-2">
-                <Input
-                  placeholder="種目名を入力"
-                  value={newName}
-                  onChange={(e) => setNewName(e.target.value)}
-                  className="h-8 flex-1 text-sm"
-                  autoFocus
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter' && newName.trim()) addExercise.mutate(newName.trim());
-                  }}
-                />
-                <Button
-                  type="button"
-                  size="sm"
-                  disabled={!newName.trim() || addExercise.isPending}
-                  onClick={() => addExercise.mutate(newName.trim())}
-                >
-                  追加
-                </Button>
-                <Button type="button" size="sm" variant="ghost" onClick={() => setShowNewInput(false)}>
-                  <X size={14} />
-                </Button>
-              </div>
-            ) : (
-              <button
-                type="button"
-                onClick={() => setShowNewInput(true)}
-                className="flex min-h-[44px] w-full items-center gap-2 rounded-md px-2 py-1 text-sm text-primary hover:bg-accent"
-              >
-                <Plus size={14} /> 新しい種目を追加
-              </button>
-            )}
-          </div>
         </div>
       )}
     </div>
@@ -279,6 +219,7 @@ export function SetInputModal({ mode, initialData, open, onOpenChange, extraInva
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
+          exerciseId,
           isBodyweight,
           weightKg: isBodyweight ? null : parseFloat(weightKg),
           reps: parseInt(reps, 10),
@@ -341,24 +282,15 @@ export function SetInputModal({ mode, initialData, open, onOpenChange, extraInva
       {/* スクロール可能なフォームエリア */}
       <div className="flex-1 overflow-y-auto">
         <div className="flex flex-col gap-4 px-4 py-4 pb-8">
-          {/* 種目選択（create のみ） */}
-          {mode === 'create' && (
-            <div className="space-y-1.5">
-              <Label>種目</Label>
-              <ExercisePicker
-                exercises={exercises}
-                value={exerciseId}
-                onChange={setExerciseId}
-              />
-            </div>
-          )}
-
-          {/* edit 時：種目名表示 */}
-          {mode === 'edit' && (
-            <div className="rounded-lg bg-muted px-3 py-2.5 text-sm font-medium">
-              {initialData?.exerciseName ?? ''}
-            </div>
-          )}
+          {/* 種目選択（create / edit 共通） */}
+          <div className="space-y-1.5">
+            <Label>種目</Label>
+            <ExercisePicker
+              exercises={exercises}
+              value={exerciseId}
+              onChange={setExerciseId}
+            />
+          </div>
 
           {/* 自重トグル */}
           <div className="flex items-center justify-between">

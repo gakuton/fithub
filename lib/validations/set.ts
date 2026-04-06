@@ -20,6 +20,7 @@ export const postSetSchema = z
 
 export const patchSetSchema = z
   .object({
+    exerciseId:   z.string().min(1).optional(),
     isBodyweight: z.boolean().optional(),
     weightKg:     z.number().positive().optional().nullable(),
     reps:         z.number().int().min(1).optional(),

@@ -27,7 +27,7 @@ export function ExportTodayButton() {
   const today = localToday();
 
   const handleExport = () => {
-    const cached = queryClient.getQueryData<{ data: GroupedExercise[] }>(['sets', 'today']);
+    const cached = queryClient.getQueryData<{ data: GroupedExercise[] }>(['sets', 'today', today]);
     const groups = cached?.data ?? [];
     if (groups.length === 0) {
       toast.error('今日の記録がありません');
