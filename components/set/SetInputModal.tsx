@@ -84,8 +84,7 @@ function ExercisePicker({
               placeholder="検索..."
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              className="h-8 text-sm"
-              autoFocus
+              className="h-8 text-base"
             />
           </div>
 
@@ -372,7 +371,7 @@ export function SetInputModal({ mode, initialData, open, onOpenChange, extraInva
               maxLength={200}
               rows={2}
               placeholder="フォームのメモなど..."
-              className="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+              className="w-full rounded-lg border border-input bg-background px-3 py-2 text-base placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
             />
           </div>
 
