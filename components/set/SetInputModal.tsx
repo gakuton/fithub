@@ -319,7 +319,6 @@ export function SetInputModal({ mode, initialData, open, onOpenChange, extraInva
               <Input
                 id="weight"
                 inputMode="decimal"
-                placeholder="60"
                 value={weightKg}
                 onChange={(e) => setWeightKg(e.target.value)}
                 className="h-11 text-base"
@@ -333,7 +332,6 @@ export function SetInputModal({ mode, initialData, open, onOpenChange, extraInva
             <Input
               id="reps"
               inputMode="numeric"
-              placeholder="10"
               value={reps}
               onChange={(e) => setReps(e.target.value)}
               className="h-11 text-base"
@@ -370,8 +368,7 @@ export function SetInputModal({ mode, initialData, open, onOpenChange, extraInva
               onChange={(e) => setMemo(e.target.value)}
               maxLength={200}
               rows={2}
-              placeholder="フォームのメモなど..."
-              className="w-full rounded-lg border border-input bg-background px-3 py-2 text-base placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+              className="w-full rounded-lg border border-input bg-background px-3 py-2 text-base focus:outline-none focus:ring-2 focus:ring-ring"
             />
           </div>
 

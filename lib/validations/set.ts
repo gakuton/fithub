@@ -1,13 +1,11 @@
 import { z } from 'zod';
-import { localToday } from '@/lib/utils/date';
 
 export const postSetSchema = z
   .object({
     exerciseId:   z.string().min(1),
     workoutDate:  z
       .string()
-      .regex(/^\d{4}-\d{2}-\d{2}$/, 'YYYY-MM-DD 形式で入力してください')
-      .refine((d) => d <= localToday(), { message: '未来の日付は指定できません' }),
+      .regex(/^\d{4}-\d{2}-\d{2}$/, 'YYYY-MM-DD 形式で入力してください'),
     isBodyweight: z.boolean().default(false),
     weightKg:     z.number().positive().optional(),
     reps:         z.number().int().min(1),

@@ -67,7 +67,6 @@ export function BodyCompositionForm() {
           <Input
             id="weight"
             inputMode="decimal"
-            placeholder="70.0"
             value={weightKg}
             onChange={(e) => setWeightKg(e.target.value)}
             className="h-11 text-base"
@@ -78,7 +77,6 @@ export function BodyCompositionForm() {
           <Input
             id="fat"
             inputMode="decimal"
-            placeholder="20.0"
             value={bodyFatPct}
             onChange={(e) => setBodyFatPct(e.target.value)}
             className="h-11 text-base"
@@ -89,7 +87,6 @@ export function BodyCompositionForm() {
           <Input
             id="muscle"
             inputMode="decimal"
-            placeholder="30.0"
             value={skeletalMuscleKg}
             onChange={(e) => setSkeletalMuscleKg(e.target.value)}
             className="h-11 text-base"
