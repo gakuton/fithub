@@ -4,7 +4,6 @@ import { db } from '@/lib/db';
 import { exercises, workoutSets } from '@/lib/db/schema';
 import { postSetSchema } from '@/lib/validations/set';
 import { calcEstimated1rm } from '@/lib/utils/1rm';
-import { localToday } from '@/lib/utils/date';
 
 export async function POST(req: Request) {
   // ① バリデーション
@@ -24,12 +23,7 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: '種目が見つかりません' }, { status: 404 });
   }
 
-  // ③ 未来日チェック（スキーマで済んでいるが念のためサーバーでも確認）
-  if (workoutDate > localToday()) {
-    return NextResponse.json({ error: '未来の日付は指定できません' }, { status: 422 });
-  }
-
-  // ④ BL-02: set_number 採番
+  // ③ BL-02: set_number 採番
   const [maxRow] = await db
     .select({ max: max(workoutSets.setNumber) })
     .from(workoutSets)
