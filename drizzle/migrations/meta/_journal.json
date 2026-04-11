@@ -15,6 +15,13 @@
       "when": 1775898231554,
       "tag": "0001_unusual_madame_hydra",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1775917561287,
+      "tag": "0002_vengeful_venus",
+      "breakpoints": true
     }
   ]
 }

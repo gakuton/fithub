@@ -52,6 +52,24 @@ export const mealItems = sqliteTable('meal_items', {
   mealIdx: index('idx_meal_items_meal').on(t.mealId),
 }));
 
+export const demographicData = sqliteTable('demographic_data', {
+  id:            text('id').primaryKey().default('default'),
+  gender:        text('gender'),         // 'male' | 'female' | 'other'
+  heightCm:      real('height_cm'),
+  birthDate:     text('birth_date'),     // YYYY-MM-DD
+  activityLevel: text('activity_level'), // sedentary | lightly_active | moderately_active | very_active | extra_active
+  updatedAt:     text('updated_at').notNull().default(sql`(datetime('now'))`),
+});
+
+export const motivations = sqliteTable('motivations', {
+  id:          text('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
+  category:    text('category'),    // 'cut' | 'bulk' | 'maintain'
+  description: text('description'),
+  achievedAt:  text('achieved_at'), // YYYY-MM-DD, nullable
+  createdAt:   text('created_at').notNull().default(sql`(datetime('now'))`),
+  updatedAt:   text('updated_at').notNull().default(sql`(datetime('now'))`),
+});
+
 export const bodyCompositions = sqliteTable('body_compositions', {
   id:                text('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
   measuredDate:      text('measured_date').notNull().unique(),
