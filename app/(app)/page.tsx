@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Dumbbell, Scale } from 'lucide-react';
+import { Dumbbell, Scale, UserCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { TodaySetList } from '@/components/home/TodaySetList';
 import { ExportTodayButton } from '@/components/home/ExportTodayButton';
@@ -31,7 +31,14 @@ export default function HomePage() {
         <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary text-primary-foreground shadow-sm">
           <span className="text-lg font-black leading-none">F</span>
         </div>
-        <h1 className="text-2xl font-bold tracking-tight">FitHub</h1>
+        <h1 className="flex-1 text-2xl font-bold tracking-tight">FitHub</h1>
+        <button
+          onClick={() => router.push('/profile')}
+          className="flex min-h-[44px] min-w-[44px] items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+          aria-label="プロフィール"
+        >
+          <UserCircle size={26} />
+        </button>
       </div>
 
       {/* トレーニング */}
