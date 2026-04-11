@@ -2,12 +2,13 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Home, History, Scale } from 'lucide-react';
+import { Home, History, Scale, UtensilsCrossed } from 'lucide-react';
 
 const tabs = [
-  { href: '/',        label: 'ホーム',   Icon: Home    },
-  { href: '/history', label: '履歴',     Icon: History },
-  { href: '/body',    label: '体組成',   Icon: Scale   },
+  { href: '/',        label: 'ホーム',   Icon: Home             },
+  { href: '/history', label: '履歴',     Icon: History          },
+  { href: '/body',    label: '体組成',   Icon: Scale            },
+  { href: '/meal',    label: '食事',     Icon: UtensilsCrossed  },
 ];
 
 export function BottomNav() {

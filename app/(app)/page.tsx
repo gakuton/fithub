@@ -7,12 +7,22 @@ import { Button } from '@/components/ui/button';
 import { TodaySetList } from '@/components/home/TodaySetList';
 import { ExportTodayButton } from '@/components/home/ExportTodayButton';
 import { BodyCompositionSummary } from '@/components/home/BodyCompositionSummary';
+import { MealSummaryCard } from '@/components/meal/MealSummaryCard';
 import { SetInputModal } from '@/components/set/SetInputModal';
+import { MealAddModal } from '@/components/meal/MealAddModal';
 import { localToday } from '@/lib/utils/date';
+import { type MealType } from '@/lib/validations/meal';
 
 export default function HomePage() {
-  const [modalOpen, setModalOpen] = useState(false);
+  const [setModalOpen,  setSetModalOpen]  = useState(false);
+  const [mealModalOpen, setMealModalOpen] = useState(false);
+  const [mealDefault,   setMealDefault]   = useState<MealType | undefined>(undefined);
   const router = useRouter();
+
+  const handleAddMeal = (type?: MealType) => {
+    setMealDefault(type);
+    setMealModalOpen(true);
+  };
 
   return (
     <div className="mx-auto max-w-lg px-4 pt-6">
@@ -24,6 +34,7 @@ export default function HomePage() {
         <h1 className="text-2xl font-bold tracking-tight">FitHub</h1>
       </div>
 
+      {/* トレーニング */}
       <section className="mb-6">
         <div className="mb-3 flex items-center justify-between">
           <div>
@@ -35,6 +46,12 @@ export default function HomePage() {
         <TodaySetList />
       </section>
 
+      {/* 食事 */}
+      <section className="mb-6">
+        <MealSummaryCard onAdd={handleAddMeal} />
+      </section>
+
+      {/* 体組成 */}
       <section className="mb-6">
         <h2 className="mb-3 text-sm font-semibold text-muted-foreground">体組成</h2>
         <BodyCompositionSummary />
@@ -44,7 +61,7 @@ export default function HomePage() {
         <Button
           size="lg"
           className="w-full gap-2 text-base font-semibold shadow-sm"
-          onClick={() => setModalOpen(true)}
+          onClick={() => setSetModalOpen(true)}
         >
           <Dumbbell size={18} />
           セットを追加
@@ -63,8 +80,15 @@ export default function HomePage() {
       <SetInputModal
         variant="drawer"
         mode="create"
-        open={modalOpen}
-        onOpenChange={setModalOpen}
+        open={setModalOpen}
+        onOpenChange={setSetModalOpen}
+      />
+
+      <MealAddModal
+        open={mealModalOpen}
+        onOpenChange={setMealModalOpen}
+        defaultDate={localToday()}
+        defaultMealType={mealDefault}
       />
     </div>
   );

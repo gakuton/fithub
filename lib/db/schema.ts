@@ -28,6 +28,30 @@ export const workoutSets = sqliteTable('workout_sets', {
   uniqueSet:       unique().on(t.exerciseId, t.workoutDate, t.setNumber),
 }));
 
+export const meals = sqliteTable('meals', {
+  id:        text('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
+  mealDate:  text('meal_date').notNull(),
+  mealType:  text('meal_type').notNull(),
+  createdAt: text('created_at').notNull().default(sql`(datetime('now'))`),
+  updatedAt: text('updated_at').notNull().default(sql`(datetime('now'))`),
+}, (t) => ({
+  dateTypeIdx: index('idx_meals_date_type').on(t.mealDate, t.mealType),
+}));
+
+export const mealItems = sqliteTable('meal_items', {
+  id:        text('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
+  mealId:    text('meal_id').notNull().references(() => meals.id, { onDelete: 'cascade' }),
+  foodName:  text('food_name'),
+  proteinG:  real('protein_g').notNull().default(0),
+  fatG:      real('fat_g').notNull().default(0),
+  carbG:     real('carb_g').notNull().default(0),
+  kcal:      real('kcal').notNull().default(0),
+  createdAt: text('created_at').notNull().default(sql`(datetime('now'))`),
+  updatedAt: text('updated_at').notNull().default(sql`(datetime('now'))`),
+}, (t) => ({
+  mealIdx: index('idx_meal_items_meal').on(t.mealId),
+}));
+
 export const bodyCompositions = sqliteTable('body_compositions', {
   id:                text('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
   measuredDate:      text('measured_date').notNull().unique(),
