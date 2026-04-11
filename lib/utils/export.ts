@@ -5,6 +5,97 @@ function formatJpDate(dateStr: string): string {
   return `${y}年${parseInt(m)}月${parseInt(d)}日`;
 }
 
+// ─── 食事エクスポート型 ───────────────────────────────
+
+type MealItem = {
+  foodName: string | null;
+  proteinG: number;
+  fatG: number;
+  carbG: number;
+  kcal: number;
+};
+
+type MealGroup = {
+  meal_type: string;
+  items: MealItem[];
+  subtotal: { kcal: number; protein_g: number; fat_g: number; carb_g: number };
+};
+
+const MEAL_TYPE_LABELS: Record<string, string> = {
+  breakfast: '朝食',
+  lunch:     '昼食',
+  dinner:    '夕食',
+  other:     'その他',
+};
+
+function buildMealGroupLines(groups: MealGroup[]): string[] {
+  const lines: string[] = [];
+  for (const group of groups) {
+    const label = MEAL_TYPE_LABELS[group.meal_type] ?? group.meal_type;
+    lines.push(`【${label}】`);
+    for (const item of group.items) {
+      const name = item.foodName ?? '-';
+      lines.push(`  ${name}　P:${item.proteinG}g F:${item.fatG}g C:${item.carbG}g　${Math.round(item.kcal)}kcal`);
+    }
+    const s = group.subtotal;
+    lines.push(`  小計：${Math.round(s.kcal)}kcal（P:${Math.round(s.protein_g)}g F:${Math.round(s.fat_g)}g C:${Math.round(s.carb_g)}g）`);
+    lines.push('');
+  }
+  return lines;
+}
+
+// ─── 食事テキスト出力（日別）───────────────────────────
+
+export function buildMealDayText(
+  groups: MealGroup[],
+  total: { kcal: number; protein_g: number; fat_g: number; carb_g: number },
+  date: string,
+): string {
+  const lines: string[] = [];
+  lines.push('---');
+  lines.push('FitHub 食事記録');
+  lines.push(`日付：${formatJpDate(date)}`);
+  lines.push('---');
+  lines.push('');
+
+  if (groups.length === 0) {
+    lines.push('この日の記録はありません');
+  } else {
+    lines.push(...buildMealGroupLines(groups));
+    lines.push(`合計：${Math.round(total.kcal)}kcal`);
+    lines.push(`  P:${Math.round(total.protein_g)}g ／ F:${Math.round(total.fat_g)}g ／ C:${Math.round(total.carb_g)}g`);
+  }
+  lines.push('---');
+  return lines.join('\n');
+}
+
+// ─── 食事テキスト出力（週別）───────────────────────────
+
+type WeekDayMeal = {
+  date: string;
+  groups: MealGroup[];
+  total: { kcal: number; protein_g: number; fat_g: number; carb_g: number };
+};
+
+export function buildMealWeekText(days: WeekDayMeal[], weekStart: string): string {
+  const lines: string[] = [];
+  lines.push('---');
+  lines.push('FitHub 週間食事記録');
+  lines.push(`週：${formatJpDate(weekStart)} 〜`);
+  lines.push('---');
+  lines.push('');
+
+  for (const day of days) {
+    if (day.groups.length === 0) continue;
+    lines.push(`■ ${formatJpDate(day.date)}`);
+    lines.push(...buildMealGroupLines(day.groups));
+    lines.push(`  合計：${Math.round(day.total.kcal)}kcal（P:${Math.round(day.total.protein_g)}g F:${Math.round(day.total.fat_g)}g C:${Math.round(day.total.carb_g)}g）`);
+    lines.push('');
+  }
+  lines.push('---');
+  return lines.join('\n');
+}
+
 export function downloadTxt(filename: string, content: string) {
   const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
   const url = URL.createObjectURL(blob);
@@ -31,7 +122,12 @@ type GroupedExercise = {
   sets: SetRow[];
 };
 
-export function buildTodayText(groups: GroupedExercise[], date: string): string {
+export function buildTodayText(
+  groups: GroupedExercise[],
+  date: string,
+  mealGroups?: MealGroup[],
+  mealTotal?: { kcal: number; protein_g: number; fat_g: number; carb_g: number },
+): string {
   const lines: string[] = [];
   lines.push('---');
   lines.push('FitHub トレーニング記録');
@@ -76,6 +172,16 @@ export function buildTodayText(groups: GroupedExercise[], date: string): string 
     lines.push(`  最高推定1RM：${maxRm.value}kg（${maxRm.name}）`);
   }
   lines.push('---');
+
+  // 食事データがあれば追記
+  if (mealGroups && mealGroups.length > 0 && mealTotal) {
+    lines.push('');
+    lines.push('【食事記録】');
+    lines.push(...buildMealGroupLines(mealGroups));
+    lines.push(`合計：${Math.round(mealTotal.kcal)}kcal`);
+    lines.push(`  P:${Math.round(mealTotal.protein_g)}g ／ F:${Math.round(mealTotal.fat_g)}g ／ C:${Math.round(mealTotal.carb_g)}g`);
+    lines.push('---');
+  }
 
   return lines.join('\n');
 }

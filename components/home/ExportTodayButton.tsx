@@ -22,18 +22,41 @@ type GroupedExercise = {
   sets: SetRow[];
 };
 
+type MealItem = {
+  foodName: string | null;
+  proteinG: number;
+  fatG: number;
+  carbG: number;
+  kcal: number;
+};
+
+type MealGroup = {
+  meal_type: string;
+  items: MealItem[];
+  subtotal: { kcal: number; protein_g: number; fat_g: number; carb_g: number };
+};
+
+type DayMeals = {
+  data: MealGroup[];
+  total: { kcal: number; protein_g: number; fat_g: number; carb_g: number };
+};
+
 export function ExportTodayButton() {
   const queryClient = useQueryClient();
   const today = localToday();
 
   const handleExport = () => {
-    const cached = queryClient.getQueryData<{ data: GroupedExercise[] }>(['sets', 'today', today]);
-    const groups = cached?.data ?? [];
-    if (groups.length === 0) {
+    const cachedSets  = queryClient.getQueryData<{ data: GroupedExercise[] }>(['sets', 'today', today]);
+    const cachedMeals = queryClient.getQueryData<DayMeals>(['meal-items', 'date', today]);
+    const groups      = cachedSets?.data ?? [];
+    const mealGroups  = cachedMeals?.data ?? [];
+    const mealTotal   = cachedMeals?.total;
+
+    if (groups.length === 0 && mealGroups.length === 0) {
       toast.error('今日の記録がありません');
       return;
     }
-    const text = buildTodayText(groups, today);
+    const text = buildTodayText(groups, today, mealGroups, mealTotal);
     downloadTxt(`fithub_today_${today}.txt`, text);
   };
 
