@@ -82,10 +82,10 @@ export default function MealPage() {
 
   return (
     <div className="mx-auto max-w-lg px-4 pt-6">
-      <h1 className="mb-5 text-xl font-bold tracking-tight">食事</h1>
+      <h1 className="mb-5 text-2xl font-bold tracking-tight">食事</h1>
 
       <Tabs defaultValue="record">
-        <TabsList className="mb-4 w-full">
+        <TabsList className="mb-4 h-[54px] w-full">
           <TabsTrigger value="record" className="flex-1">記録</TabsTrigger>
           <TabsTrigger value="graph"  className="flex-1">グラフ</TabsTrigger>
         </TabsList>
