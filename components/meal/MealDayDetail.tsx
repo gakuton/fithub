@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { Plus, Pencil, Trash2 } from 'lucide-react';
+import { Plus, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
 import {
   AlertDialog,
@@ -135,7 +135,12 @@ export function MealDayDetail({ date }: Props) {
                 {/* 食品リスト */}
                 <div className="divide-y">
                   {group.items.map((item) => (
-                    <div key={item.id} className="flex items-center gap-2 px-4 py-3">
+                    <button
+                      key={item.id}
+                      type="button"
+                      onClick={() => setEditItem({ ...item, mealDate: date })}
+                      className="flex min-h-[44px] w-full items-center gap-3 px-4 py-3 text-left transition-colors hover:bg-muted/30 active:bg-muted/50"
+                    >
                       <div className="min-w-0 flex-1">
                         <p className="truncate text-sm font-medium">
                           {item.foodName ?? <span className="text-muted-foreground">-</span>}
@@ -147,19 +152,16 @@ export function MealDayDetail({ date }: Props) {
                       <span className="shrink-0 text-sm font-semibold">
                         {Math.round(item.kcal)}<span className="ml-0.5 text-xs font-normal text-muted-foreground">kcal</span>
                       </span>
-                      <button
-                        onClick={() => setEditItem({ ...item, mealDate: date })}
-                        className="shrink-0 rounded-md p-1.5 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
-                      >
-                        <Pencil size={14} />
-                      </button>
-                      <button
-                        onClick={() => setDeleteTarget({ id: item.id, name: item.foodName ?? '-' })}
+                      <span
+                        role="button"
+                        tabIndex={0}
+                        onClick={(e) => { e.stopPropagation(); setDeleteTarget({ id: item.id, name: item.foodName ?? '-' }); }}
+                        onKeyDown={(e) => { if (e.key === 'Enter') { e.stopPropagation(); setDeleteTarget({ id: item.id, name: item.foodName ?? '-' }); } }}
                         className="shrink-0 rounded-md p-1.5 text-muted-foreground transition-colors hover:bg-destructive/10 hover:text-destructive"
                       >
                         <Trash2 size={14} />
-                      </button>
-                    </div>
+                      </span>
+                    </button>
                   ))}
                 </div>
               </div>

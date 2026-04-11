@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { Plus, Pencil, Trash2, Trophy, RotateCcw } from 'lucide-react';
+import { Plus, Trash2, Trophy, RotateCcw } from 'lucide-react';
 import { toast } from 'sonner';
 import confetti from 'canvas-confetti';
 import {
@@ -110,8 +110,12 @@ export function MotivationSection() {
         ) : (
           <ul className="divide-y">
             {items.map((item) => (
-              <li key={item.id} className="px-4 py-3">
-                <div className="flex items-start gap-2">
+              <li key={item.id}>
+                <button
+                  type="button"
+                  onClick={() => { setEditTarget(item); setFormOpen(true); }}
+                  className="flex min-h-[44px] w-full items-center gap-3 px-4 py-3 text-left transition-colors hover:bg-muted/30 active:bg-muted/50"
+                >
                   <div className="min-w-0 flex-1">
                     {/* カテゴリバッジ */}
                     {item.category && (
@@ -139,36 +143,39 @@ export function MotivationSection() {
                   {/* アクションボタン */}
                   <div className="flex shrink-0 items-center gap-1">
                     {!item.achievedAt ? (
-                      <button
-                        onClick={() => handleAchieve(item)}
+                      <span
+                        role="button"
+                        tabIndex={0}
                         title="達成"
+                        onClick={(e) => { e.stopPropagation(); handleAchieve(item); }}
+                        onKeyDown={(e) => { if (e.key === 'Enter') { e.stopPropagation(); handleAchieve(item); } }}
                         className="rounded-md p-1.5 text-muted-foreground hover:bg-green-50 hover:text-green-600"
                       >
                         <Trophy size={15} />
-                      </button>
+                      </span>
                     ) : (
-                      <button
-                        onClick={() => handleUnachieve(item)}
+                      <span
+                        role="button"
+                        tabIndex={0}
                         title="達成を取り消す"
+                        onClick={(e) => { e.stopPropagation(); handleUnachieve(item); }}
+                        onKeyDown={(e) => { if (e.key === 'Enter') { e.stopPropagation(); handleUnachieve(item); } }}
                         className="rounded-md p-1.5 text-muted-foreground hover:bg-muted"
                       >
                         <RotateCcw size={15} />
-                      </button>
+                      </span>
                     )}
-                    <button
-                      onClick={() => { setEditTarget(item); setFormOpen(true); }}
-                      className="rounded-md p-1.5 text-muted-foreground hover:bg-muted"
-                    >
-                      <Pencil size={15} />
-                    </button>
-                    <button
-                      onClick={() => setDeleteTarget(item)}
+                    <span
+                      role="button"
+                      tabIndex={0}
+                      onClick={(e) => { e.stopPropagation(); setDeleteTarget(item); }}
+                      onKeyDown={(e) => { if (e.key === 'Enter') { e.stopPropagation(); setDeleteTarget(item); } }}
                       className="rounded-md p-1.5 text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
                     >
                       <Trash2 size={15} />
-                    </button>
+                    </span>
                   </div>
-                </div>
+                </button>
               </li>
             ))}
           </ul>

@@ -11,7 +11,7 @@ export default function HistoryPage() {
 
   return (
     <div className="mx-auto max-w-lg px-4 pt-6">
-      <h1 className="mb-4 text-2xl font-bold tracking-tight">履歴</h1>
+      <h1 className="mb-4 text-2xl font-bold tracking-tight">運動</h1>
 
       {/* タブ切り替え */}
       <div className="mb-4 flex rounded-lg border bg-muted p-1">
