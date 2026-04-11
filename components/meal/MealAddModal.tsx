@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
-import { X } from 'lucide-react';
 import { toast } from 'sonner';
 import {
   Drawer,
@@ -157,14 +156,8 @@ export function MealAddModal({ open, onOpenChange, defaultDate, defaultMealType,
   return (
     <Drawer open={open} onOpenChange={onOpenChange}>
       <DrawerContent className="mx-auto max-w-lg">
-        <DrawerHeader className="flex items-center justify-between pb-2">
+        <DrawerHeader className="pb-2">
           <DrawerTitle>{isEdit ? '食事を編集' : '食事を記録する'}</DrawerTitle>
-          <button
-            onClick={() => onOpenChange(false)}
-            className="rounded-full p-1 text-muted-foreground transition-colors hover:bg-muted"
-          >
-            <X size={18} />
-          </button>
         </DrawerHeader>
 
         <div className="space-y-4 px-4 pb-8">
@@ -239,12 +232,6 @@ export function MealAddModal({ open, onOpenChange, defaultDate, defaultMealType,
             {loading ? '保存中...' : isEdit ? '更新する' : '記録する'}
           </Button>
 
-          {/* 追加モード時のヒント */}
-          {!isEdit && (
-            <p className="text-center text-xs text-muted-foreground">
-              記録後もこの画面が開いたままになります。続けて食品を追加できます。
-            </p>
-          )}
         </div>
       </DrawerContent>
     </Drawer>
