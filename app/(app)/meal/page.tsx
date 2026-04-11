@@ -4,7 +4,6 @@ import { useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { Download } from 'lucide-react';
 import { toast } from 'sonner';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { MealWeekStrip } from '@/components/meal/MealWeekStrip';
 import { MealDayDetail } from '@/components/meal/MealDayDetail';
 import { MealGraph } from '@/components/meal/MealGraph';
@@ -34,12 +33,14 @@ function addDays(dateStr: string, n: number): string {
   return [d.getFullYear(), String(d.getMonth() + 1).padStart(2, '0'), String(d.getDate()).padStart(2, '0')].join('-');
 }
 
+type Tab = 'record' | 'graph';
 type BodyComposition = { measuredDate: string; weightKg: number; bodyFatPct: number | null };
 type DemographicData = { gender: string | null; heightCm: number | null; birthDate: string | null; activityLevel: string | null };
 type MotivationData  = { category: string | null; description: string | null };
 
 export default function MealPage() {
   const today = localToday();
+  const [tab,          setTab]          = useState<Tab>('record');
   const [selectedDate, setSelectedDate] = useState(today);
   const [weekOffset,   setWeekOffset]   = useState(0);
   const queryClient = useQueryClient();
@@ -84,14 +85,26 @@ export default function MealPage() {
     <div className="mx-auto max-w-lg px-4 pt-6">
       <h1 className="mb-5 text-2xl font-bold tracking-tight">食事</h1>
 
-      <Tabs defaultValue="record">
-        <TabsList className="mb-4 h-[54px] w-full">
-          <TabsTrigger value="record" className="flex-1">記録</TabsTrigger>
-          <TabsTrigger value="graph"  className="flex-1">グラフ</TabsTrigger>
-        </TabsList>
+      {/* タブ切り替え */}
+      <div className="mb-4 flex rounded-lg border bg-muted p-1">
+        {(['record', 'graph'] as const).map((t) => (
+          <button
+            key={t}
+            onClick={() => setTab(t)}
+            className={`min-h-[44px] flex-1 rounded-md text-sm font-medium transition-colors ${
+              tab === t
+                ? 'bg-background text-foreground shadow-sm'
+                : 'text-muted-foreground hover:text-foreground'
+            }`}
+          >
+            {t === 'record' ? '記録' : 'グラフ'}
+          </button>
+        ))}
+      </div>
 
-        {/* ── 記録タブ ── */}
-        <TabsContent value="record" className="space-y-4">
+      {/* ── 記録タブ ── */}
+      {tab === 'record' && (
+        <div className="space-y-4">
           <MealWeekStrip
             selectedDate={selectedDate}
             weekOffset={weekOffset}
@@ -123,13 +136,11 @@ export default function MealPage() {
             </div>
             <MealDayDetail date={selectedDate} />
           </div>
-        </TabsContent>
+        </div>
+      )}
 
-        {/* ── グラフタブ ── */}
-        <TabsContent value="graph">
-          <MealGraph />
-        </TabsContent>
-      </Tabs>
+      {/* ── グラフタブ ── */}
+      {tab === 'graph' && <MealGraph />}
     </div>
   );
 }
