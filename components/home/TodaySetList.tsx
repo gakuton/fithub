@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Dumbbell, AlertCircle } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 import { SetInputModal } from '@/components/set/SetInputModal';
 import { EmptyState } from '@/components/common/EmptyState';
 import { localToday } from '@/lib/utils/date';
@@ -29,7 +30,7 @@ type GroupedExercise = {
   sets: SetRow[];
 };
 
-export function TodaySetList() {
+export function TodaySetList({ onAdd }: { onAdd?: () => void }) {
   const [editTarget, setEditTarget] = useState<{
     open: boolean;
     set: SetRow | null;
@@ -63,21 +64,34 @@ export function TodaySetList() {
 
   if (isError) {
     return (
-      <EmptyState icon={AlertCircle} message="データの取得に失敗しました" sub="しばらく経ってから再度お試しください" />
+      <div className="rounded-2xl border bg-card overflow-hidden">
+        <EmptyState icon={AlertCircle} message="データの取得に失敗しました" sub="しばらく経ってから再度お試しください" />
+      </div>
     );
   }
 
   if (groups.length === 0) {
     return (
-      <EmptyState icon={Dumbbell} message="今日のトレーニングはまだありません" sub="下のボタンからセットを追加しましょう" />
+      <div className="rounded-2xl border bg-card px-4 py-4">
+        <EmptyState icon={Dumbbell} message="今日のトレーニングはまだありません" sub="ボタンからセットを追加しましょう" className="p-10 text-center" />
+        <Button
+          size="lg"
+          variant="outline"
+          className="mt-3 w-full gap-2"
+          onClick={onAdd}
+        >
+          <Dumbbell size={16} />
+          セットを追加
+        </Button>
+      </div>
     );
   }
 
   return (
     <>
-      <div className="space-y-3">
+      <div className="rounded-2xl border bg-card overflow-hidden">
         {groups.map((group) => (
-          <div key={group.exerciseId} className="rounded-2xl border bg-card overflow-hidden">
+          <div key={group.exerciseId} className="border-b last:border-b-0">
             <div className="flex items-center gap-2 border-b bg-primary/5 px-4 py-2.5">
               <span className="font-semibold text-sm">{group.exerciseName}</span>
               {group.category && (
@@ -111,6 +125,18 @@ export function TodaySetList() {
             </div>
           </div>
         ))}
+
+        <div className="px-3 pb-3 pt-2">
+          <Button
+            size="lg"
+            variant="outline"
+            className="w-full gap-2"
+            onClick={onAdd}
+          >
+            <Dumbbell size={16} />
+            セットを追加
+          </Button>
+        </div>
       </div>
 
       {editTarget.set && (

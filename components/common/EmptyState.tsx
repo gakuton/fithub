@@ -4,11 +4,12 @@ type Props = {
   icon: LucideIcon;
   message: string;
   sub?: string;
+  className?: string;
 };
 
-export function EmptyState({ icon: Icon, message, sub }: Props) {
+export function EmptyState({ icon: Icon, message, sub, className }: Props) {
   return (
-    <div className="rounded-2xl border bg-card p-10 text-center">
+    <div className={className ?? "rounded-2xl border bg-card p-10 text-center"}>
       <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-primary/10">
         <Icon size={26} className="text-primary" />
       </div>

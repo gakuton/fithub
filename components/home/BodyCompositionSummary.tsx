@@ -2,6 +2,7 @@
 
 import { useQuery } from '@tanstack/react-query';
 import { Scale } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 
 type BodyRow = {
   id: string;
@@ -11,7 +12,7 @@ type BodyRow = {
   skeletalMuscleKg: number | null;
 };
 
-export function BodyCompositionSummary() {
+export function BodyCompositionSummary({ onNavigate }: { onNavigate?: () => void }) {
   const { data, isLoading } = useQuery<{ data: BodyRow | null }>({
     queryKey: ['body-compositions', 'latest'],
     queryFn: () => fetch('/api/body-compositions/latest').then((r) => r.json()),
@@ -32,7 +33,11 @@ export function BodyCompositionSummary() {
     return (
       <div className="rounded-xl border bg-card px-4 py-4 text-center">
         <Scale className="mx-auto mb-2 text-muted-foreground" size={24} />
-        <p className="text-xs text-muted-foreground">体組成の記録がありません</p>
+        <p className="mb-3 text-xs text-muted-foreground">体組成の記録がありません</p>
+        <Button size="lg" variant="outline" className="w-full gap-2" onClick={onNavigate}>
+          <Scale size={16} />
+          体組成を記録
+        </Button>
       </div>
     );
   }
@@ -43,7 +48,7 @@ export function BodyCompositionSummary() {
         <Scale size={14} className="text-muted-foreground" />
         <span className="text-xs text-muted-foreground">最新の体組成 ({latest.measuredDate})</span>
       </div>
-      <div className="flex items-end gap-4">
+      <div className="mb-4 flex items-end gap-4">
         <div>
           <p className="text-2xl font-bold">{latest.weightKg} <span className="text-sm font-normal text-muted-foreground">kg</span></p>
         </div>
@@ -66,6 +71,10 @@ export function BodyCompositionSummary() {
           </div>
         )}
       </div>
+      <Button size="lg" variant="outline" className="w-full gap-2" onClick={onNavigate}>
+        <Scale size={16} />
+        体組成を記録
+      </Button>
     </div>
   );
 }
