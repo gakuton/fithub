@@ -34,11 +34,21 @@ function addDays(dateStr: string, n: number): string {
   return [d.getFullYear(), String(d.getMonth() + 1).padStart(2, '0'), String(d.getDate()).padStart(2, '0')].join('-');
 }
 
+type BodyComposition = { measuredDate: string; weightKg: number; bodyFatPct: number | null };
+type DemographicData = { gender: string | null; heightCm: number | null; birthDate: string | null; activityLevel: string | null };
+type MotivationData  = { category: string | null; description: string | null };
+
 export default function MealPage() {
   const today = localToday();
   const [selectedDate, setSelectedDate] = useState(today);
   const [weekOffset,   setWeekOffset]   = useState(0);
   const queryClient = useQueryClient();
+
+  const getProfile = () => ({
+    body:       queryClient.getQueryData<{ data: BodyComposition | null }>(['body-compositions', 'latest'])?.data ?? null,
+    demog:      queryClient.getQueryData<{ data: DemographicData | null }>(['profile', 'demographic'])?.data ?? null,
+    motivation: queryClient.getQueryData<{ data: MotivationData[] }>(['profile', 'motivations'])?.data?.[0] ?? null,
+  });
 
   const handleExportDay = () => {
     const cached = queryClient.getQueryData<{ data: unknown[]; total: { kcal: number; protein_g: number; fat_g: number; carb_g: number } }>(
@@ -47,7 +57,7 @@ export default function MealPage() {
     const groups = (cached?.data ?? []) as Parameters<typeof buildMealDayText>[0];
     const total  = cached?.total ?? { kcal: 0, protein_g: 0, fat_g: 0, carb_g: 0 };
     if (groups.length === 0) { toast.error('この日の記録がありません'); return; }
-    downloadTxt(`fithub_meal_${selectedDate}.txt`, buildMealDayText(groups, total, selectedDate));
+    downloadTxt(`fithub_meal_${selectedDate}.txt`, buildMealDayText(groups, total, selectedDate, getProfile()));
   };
 
   const handleExportWeek = async () => {
@@ -67,7 +77,7 @@ export default function MealPage() {
     );
     const hasAny = results.some((r) => r.groups.length > 0);
     if (!hasAny) { toast.error('この週の記録がありません'); return; }
-    downloadTxt(`fithub_meal_week_${weekStart}.txt`, buildMealWeekText(results, weekStart));
+    downloadTxt(`fithub_meal_week_${weekStart}.txt`, buildMealWeekText(results, weekStart, getProfile()));
   };
 
   return (
