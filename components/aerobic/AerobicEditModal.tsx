@@ -203,13 +203,13 @@ export function AerobicEditModal({ session, open, onOpenChange, extraInvalidateK
           {/* 強度 */}
           <div className="space-y-1.5">
             <Label>強度</Label>
-            <div className="flex flex-col gap-1">
+            <div className="grid grid-cols-2 gap-1">
               {INTENSITY_OPTIONS[activityType].map((opt) => (
                 <button
                   key={opt.value}
                   type="button"
                   onClick={() => setIntensity(opt.value)}
-                  className={`min-h-[44px] rounded-lg border px-3 py-2 text-sm text-left transition-colors ${
+                  className={`min-h-[44px] rounded-lg border px-3 py-2 text-sm text-center transition-colors ${
                     intensity === opt.value
                       ? 'border-primary bg-primary/10 font-medium'
                       : 'hover:bg-muted/50'
@@ -233,31 +233,48 @@ export function AerobicEditModal({ session, open, onOpenChange, extraInvalidateK
             />
           </div>
 
-          {/* 距離（ウォーキング・ランニングのみ） */}
-          {(activityType === 'walking' || activityType === 'running') && (
+          {/* 距離 + 平均心拍数（ウォーキング・ランニング時は横並び） */}
+          {(activityType === 'walking' || activityType === 'running') ? (
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1.5">
+                <Label htmlFor="edit-distance">
+                  距離（km）<span className="ml-1 rounded-full bg-muted px-1.5 py-0.5 text-[10px] font-medium">任意</span>
+                </Label>
+                <Input
+                  id="edit-distance"
+                  inputMode="decimal"
+                  value={distanceKm}
+                  onChange={(e) => setDistanceKm(e.target.value)}
+                  className="h-11 text-base"
+                />
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="edit-hr">
+                  心拍数（bpm）<span className="ml-1 rounded-full bg-muted px-1.5 py-0.5 text-[10px] font-medium">任意</span>
+                </Label>
+                <Input
+                  id="edit-hr"
+                  inputMode="numeric"
+                  value={avgHeartRate}
+                  onChange={(e) => setAvgHeartRate(e.target.value)}
+                  className="h-11 text-base"
+                />
+              </div>
+            </div>
+          ) : (
             <div className="space-y-1.5">
-              <Label htmlFor="edit-distance">距離（km）任意</Label>
+              <Label htmlFor="edit-hr">
+                平均心拍数（bpm）<span className="ml-1 rounded-full bg-muted px-1.5 py-0.5 text-[10px] font-medium">任意</span>
+              </Label>
               <Input
-                id="edit-distance"
-                inputMode="decimal"
-                value={distanceKm}
-                onChange={(e) => setDistanceKm(e.target.value)}
+                id="edit-hr"
+                inputMode="numeric"
+                value={avgHeartRate}
+                onChange={(e) => setAvgHeartRate(e.target.value)}
                 className="h-11 text-base"
               />
             </div>
           )}
-
-          {/* 平均心拍数 */}
-          <div className="space-y-1.5">
-            <Label htmlFor="edit-hr">平均心拍数（bpm）任意</Label>
-            <Input
-              id="edit-hr"
-              inputMode="numeric"
-              value={avgHeartRate}
-              onChange={(e) => setAvgHeartRate(e.target.value)}
-              className="h-11 text-base"
-            />
-          </div>
 
           {/* 日付 */}
           <div className="space-y-1.5">
@@ -274,7 +291,9 @@ export function AerobicEditModal({ session, open, onOpenChange, extraInvalidateK
 
           {/* メモ */}
           <div className="space-y-1.5">
-            <Label htmlFor="edit-memo">メモ（任意）</Label>
+            <Label htmlFor="edit-memo">
+              メモ<span className="ml-1 rounded-full bg-muted px-1.5 py-0.5 text-[10px] font-medium">任意</span>
+            </Label>
             <textarea
               id="edit-memo"
               value={memo}

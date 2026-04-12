@@ -441,13 +441,13 @@ export function SetInputModal({ mode, initialData, open, onOpenChange, extraInva
               {/* 強度 */}
               <div className="space-y-1.5">
                 <Label>強度</Label>
-                <div className="flex flex-col gap-1">
+                <div className="grid grid-cols-2 gap-1">
                   {INTENSITY_OPTIONS[aerobicActivityType].map((opt) => (
                     <button
                       key={opt.value}
                       type="button"
                       onClick={() => setAerobicIntensity(opt.value)}
-                      className={`min-h-[44px] rounded-lg border px-3 py-2 text-sm text-left transition-colors ${
+                      className={`min-h-[44px] rounded-lg border px-3 py-2 text-sm text-center transition-colors ${
                         aerobicIntensity === opt.value
                           ? 'border-primary bg-primary/10 font-medium'
                           : 'hover:bg-muted/50'
@@ -472,33 +472,51 @@ export function SetInputModal({ mode, initialData, open, onOpenChange, extraInva
                 />
               </div>
 
-              {/* 距離（ウォーキング・ランニングのみ） */}
-              {(aerobicActivityType === 'walking' || aerobicActivityType === 'running') && (
+              {/* 距離 + 平均心拍数（ウォーキング・ランニング時は横並び） */}
+              {(aerobicActivityType === 'walking' || aerobicActivityType === 'running') ? (
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-1.5">
+                    <Label htmlFor="aerobic-distance">
+                      距離（km）<span className="ml-1 rounded-full bg-muted px-1.5 py-0.5 text-[10px] font-medium">任意</span>
+                    </Label>
+                    <Input
+                      id="aerobic-distance"
+                      inputMode="decimal"
+                      value={aerobicDistanceKm}
+                      onChange={(e) => setAerobicDistanceKm(e.target.value)}
+                      className="h-11 text-base"
+                      placeholder="5.0"
+                    />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label htmlFor="aerobic-hr">
+                      心拍数（bpm）<span className="ml-1 rounded-full bg-muted px-1.5 py-0.5 text-[10px] font-medium">任意</span>
+                    </Label>
+                    <Input
+                      id="aerobic-hr"
+                      inputMode="numeric"
+                      value={aerobicAvgHeartRate}
+                      onChange={(e) => setAerobicAvgHeartRate(e.target.value)}
+                      className="h-11 text-base"
+                      placeholder="130"
+                    />
+                  </div>
+                </div>
+              ) : (
                 <div className="space-y-1.5">
-                  <Label htmlFor="aerobic-distance">距離（km）任意</Label>
+                  <Label htmlFor="aerobic-hr">
+                    平均心拍数（bpm）<span className="ml-1 rounded-full bg-muted px-1.5 py-0.5 text-[10px] font-medium">任意</span>
+                  </Label>
                   <Input
-                    id="aerobic-distance"
-                    inputMode="decimal"
-                    value={aerobicDistanceKm}
-                    onChange={(e) => setAerobicDistanceKm(e.target.value)}
+                    id="aerobic-hr"
+                    inputMode="numeric"
+                    value={aerobicAvgHeartRate}
+                    onChange={(e) => setAerobicAvgHeartRate(e.target.value)}
                     className="h-11 text-base"
-                    placeholder="5.0"
+                    placeholder="130"
                   />
                 </div>
               )}
-
-              {/* 平均心拍数 */}
-              <div className="space-y-1.5">
-                <Label htmlFor="aerobic-hr">平均心拍数（bpm）任意</Label>
-                <Input
-                  id="aerobic-hr"
-                  inputMode="numeric"
-                  value={aerobicAvgHeartRate}
-                  onChange={(e) => setAerobicAvgHeartRate(e.target.value)}
-                  className="h-11 text-base"
-                  placeholder="130"
-                />
-              </div>
 
               {/* 日付 */}
               <div className="space-y-1.5">
@@ -515,7 +533,9 @@ export function SetInputModal({ mode, initialData, open, onOpenChange, extraInva
 
               {/* メモ */}
               <div className="space-y-1.5">
-                <Label htmlFor="aerobic-memo">メモ（任意）</Label>
+                <Label htmlFor="aerobic-memo">
+                  メモ<span className="ml-1 rounded-full bg-muted px-1.5 py-0.5 text-[10px] font-medium">任意</span>
+                </Label>
                 <textarea
                   id="aerobic-memo"
                   value={aerobicMemo}
