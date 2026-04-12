@@ -70,6 +70,23 @@ export const motivations = sqliteTable('motivations', {
   updatedAt:   text('updated_at').notNull().default(sql`(datetime('now'))`),
 });
 
+export const aerobicSessions = sqliteTable('aerobic_sessions', {
+  id:           text('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
+  activityType: text('activity_type').notNull(), // 'walking' | 'running' | 'tennis'
+  sessionDate:  text('session_date').notNull(),  // YYYY-MM-DD
+  durationMin:  integer('duration_min').notNull(),
+  intensity:    text('intensity').notNull(),      // walking: 'moderate'|'brisk' / running: 'slow'|'moderate' / tennis: 'doubles'|'singles'
+  distanceKm:   real('distance_km'),             // nullable
+  avgHeartRate: integer('avg_heart_rate'),        // nullable
+  weightKg:     real('weight_kg').notNull(),
+  kcalBurned:   real('kcal_burned').notNull(),
+  memo:         text('memo'),
+  createdAt:    text('created_at').notNull().default(sql`(datetime('now'))`),
+  updatedAt:    text('updated_at').notNull().default(sql`(datetime('now'))`),
+}, (t) => ({
+  dateIdx: index('idx_aerobic_date').on(t.sessionDate),
+}));
+
 export const bodyCompositions = sqliteTable('body_compositions', {
   id:                text('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
   measuredDate:      text('measured_date').notNull().unique(),
