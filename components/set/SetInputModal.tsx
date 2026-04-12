@@ -9,6 +9,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { calcEstimated1rm } from '@/lib/utils/1rm';
 import { localToday } from '@/lib/utils/date';
+import { ACTIVITY_TYPES, ACTIVITY_TYPE_LABELS, INTENSITY_OPTIONS, type ActivityType } from '@/lib/validations/aerobic';
 
 // ─── 型 ───────────────────────────────────────────────
 type Exercise = { id: string; name: string; category: string | null };
@@ -128,6 +129,10 @@ export function SetInputModal({ mode, initialData, open, onOpenChange, extraInva
   const queryClient = useQueryClient();
   const today = localToday();
 
+  // ─── カテゴリ切り替え（create時のみ）
+  const [inputCategory, setInputCategory] = useState<'strength' | 'aerobic'>('strength');
+
+  // ─── 筋トレフォーム
   const [exerciseId, setExerciseId]       = useState(initialData?.exerciseId ?? '');
   const [workoutDate, setWorkoutDate]     = useState(initialData?.workoutDate ?? today);
   const [isBodyweight, setIsBodyweight]   = useState(initialData?.isBodyweight ?? false);
@@ -138,9 +143,34 @@ export function SetInputModal({ mode, initialData, open, onOpenChange, extraInva
   const [nextSetNumber, setNextSetNumber] = useState<number | null>(null);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
+  // ─── 有酸素フォーム
+  const [aerobicActivityType, setAerobicActivityType] = useState<ActivityType>('walking');
+  const [aerobicSessionDate, setAerobicSessionDate]   = useState(today);
+  const [aerobicIntensity, setAerobicIntensity]       = useState(INTENSITY_OPTIONS.walking[0].value);
+  const [aerobicDurationMin, setAerobicDurationMin]   = useState('');
+  const [aerobicDistanceKm, setAerobicDistanceKm]     = useState('');
+  const [aerobicAvgHeartRate, setAerobicAvgHeartRate] = useState('');
+  const [aerobicWeightKg, setAerobicWeightKg]         = useState('');
+  const [aerobicMemo, setAerobicMemo]                 = useState('');
+
+  // 種目が変わったら強度をリセット
+  useEffect(() => {
+    setAerobicIntensity(INTENSITY_OPTIONS[aerobicActivityType][0].value);
+  }, [aerobicActivityType]);
+
+  // 最新体組成（有酸素の体重自動補完用）
+  const { data: bodyLatest } = useQuery<{ data: { weightKg: number } | null }>({
+    queryKey: ['body-compositions', 'latest'],
+    queryFn: () => fetch('/api/body-compositions/latest').then((r) => r.json()),
+    staleTime: 60_000,
+    enabled: mode === 'create' && inputCategory === 'aerobic',
+  });
+  const latestWeightKg = bodyLatest?.data?.weightKg ?? null;
+
   // モーダルを開いたとき初期値を再セット
   useEffect(() => {
     if (!open) return;
+    // 筋トレ
     setExerciseId(initialData?.exerciseId ?? '');
     setWorkoutDate(initialData?.workoutDate ?? today);
     setIsBodyweight(initialData?.isBodyweight ?? false);
@@ -149,6 +179,18 @@ export function SetInputModal({ mode, initialData, open, onOpenChange, extraInva
     setMemo(initialData?.memo ?? '');
     setNextSetNumber(null);
     setShowDeleteConfirm(false);
+    // 有酸素
+    if (mode === 'create') {
+      setInputCategory('strength');
+      setAerobicActivityType('walking');
+      setAerobicSessionDate(today);
+      setAerobicIntensity(INTENSITY_OPTIONS.walking[0].value);
+      setAerobicDurationMin('');
+      setAerobicDistanceKm('');
+      setAerobicAvgHeartRate('');
+      setAerobicWeightKg('');
+      setAerobicMemo('');
+    }
   }, [open]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // body スクロールロック
@@ -253,13 +295,50 @@ export function SetInputModal({ mode, initialData, open, onOpenChange, extraInva
     onError: (e) => toast.error((e as Error).message),
   });
 
+  // ─── 有酸素 mutation
+  const effectiveWeight = latestWeightKg ?? (aerobicWeightKg ? parseFloat(aerobicWeightKg) : 0);
+  const isAerobicValid =
+    aerobicDurationMin !== '' &&
+    parseInt(aerobicDurationMin, 10) >= 1 &&
+    effectiveWeight > 0;
+
+  const aerobicCreateMutation = useMutation({
+    mutationFn: async () => {
+      const res = await fetch('/api/aerobic-sessions', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          activityType: aerobicActivityType,
+          sessionDate:  aerobicSessionDate,
+          durationMin:  parseInt(aerobicDurationMin, 10),
+          intensity:    aerobicIntensity,
+          distanceKm:   aerobicDistanceKm   ? parseFloat(aerobicDistanceKm)   : undefined,
+          avgHeartRate: aerobicAvgHeartRate ? parseInt(aerobicAvgHeartRate, 10) : undefined,
+          weightKg:     effectiveWeight,
+          memo:         aerobicMemo || undefined,
+        }),
+      });
+      const json = await res.json();
+      if (!res.ok) throw new Error(JSON.stringify(json.error));
+      return json.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['aerobic-sessions'] });
+      toast.success('有酸素を記録しました');
+      onOpenChange(false);
+    },
+    onError: (e) => toast.error((e as Error).message),
+  });
+
   const isPending = createMutation.isPending || updateMutation.isPending;
 
   const title =
     mode === 'create'
-      ? nextSetNumber != null
-        ? `次はセット ${nextSetNumber}`
-        : 'セットを追加'
+      ? inputCategory === 'aerobic'
+        ? '有酸素を記録'
+        : nextSetNumber != null
+          ? `次はセット ${nextSetNumber}`
+          : 'セットを追加'
       : `セット ${initialData?.setNumber} を編集`;
 
   if (!open) return null;
@@ -281,6 +360,174 @@ export function SetInputModal({ mode, initialData, open, onOpenChange, extraInva
       {/* スクロール可能なフォームエリア */}
       <div className="flex-1 overflow-y-auto">
         <div className="flex flex-col gap-4 px-4 py-4 pb-8">
+
+          {/* カテゴリ切り替え（create のみ） */}
+          {mode === 'create' && (
+            <div className="flex rounded-lg border p-1 gap-1">
+              {(['strength', 'aerobic'] as const).map((cat) => (
+                <button
+                  key={cat}
+                  type="button"
+                  onClick={() => setInputCategory(cat)}
+                  className={`flex-1 rounded-md py-1.5 text-sm font-medium transition-colors ${
+                    inputCategory === cat
+                      ? 'bg-primary text-primary-foreground'
+                      : 'text-muted-foreground hover:text-foreground'
+                  }`}
+                >
+                  {cat === 'strength' ? '筋トレ' : '有酸素'}
+                </button>
+              ))}
+            </div>
+          )}
+
+          {/* ─── 有酸素フォーム ─── */}
+          {mode === 'create' && inputCategory === 'aerobic' && (
+            <>
+              {/* 活動種目 */}
+              <div className="space-y-1.5">
+                <Label>種目</Label>
+                <div className="flex rounded-lg border p-1 gap-1">
+                  {ACTIVITY_TYPES.map((type) => (
+                    <button
+                      key={type}
+                      type="button"
+                      onClick={() => setAerobicActivityType(type)}
+                      className={`flex-1 rounded-md py-1.5 text-sm font-medium transition-colors ${
+                        aerobicActivityType === type
+                          ? 'bg-primary text-primary-foreground'
+                          : 'text-muted-foreground hover:text-foreground'
+                      }`}
+                    >
+                      {ACTIVITY_TYPE_LABELS[type]}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* 強度 */}
+              <div className="space-y-1.5">
+                <Label>強度</Label>
+                <div className="flex flex-col gap-1">
+                  {INTENSITY_OPTIONS[aerobicActivityType].map((opt) => (
+                    <button
+                      key={opt.value}
+                      type="button"
+                      onClick={() => setAerobicIntensity(opt.value)}
+                      className={`min-h-[44px] rounded-lg border px-3 py-2 text-sm text-left transition-colors ${
+                        aerobicIntensity === opt.value
+                          ? 'border-primary bg-primary/10 font-medium'
+                          : 'hover:bg-muted/50'
+                      }`}
+                    >
+                      {opt.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* 継続時間 */}
+              <div className="space-y-1.5">
+                <Label htmlFor="aerobic-duration">継続時間（分）</Label>
+                <Input
+                  id="aerobic-duration"
+                  inputMode="numeric"
+                  value={aerobicDurationMin}
+                  onChange={(e) => setAerobicDurationMin(e.target.value)}
+                  className="h-11 text-base"
+                  placeholder="30"
+                />
+              </div>
+
+              {/* 距離（ウォーキング・ランニングのみ） */}
+              {(aerobicActivityType === 'walking' || aerobicActivityType === 'running') && (
+                <div className="space-y-1.5">
+                  <Label htmlFor="aerobic-distance">距離（km）— 任意</Label>
+                  <Input
+                    id="aerobic-distance"
+                    inputMode="decimal"
+                    value={aerobicDistanceKm}
+                    onChange={(e) => setAerobicDistanceKm(e.target.value)}
+                    className="h-11 text-base"
+                    placeholder="5.0"
+                  />
+                </div>
+              )}
+
+              {/* 平均心拍数 */}
+              <div className="space-y-1.5">
+                <Label htmlFor="aerobic-hr">平均心拍数（bpm）— 任意</Label>
+                <Input
+                  id="aerobic-hr"
+                  inputMode="numeric"
+                  value={aerobicAvgHeartRate}
+                  onChange={(e) => setAerobicAvgHeartRate(e.target.value)}
+                  className="h-11 text-base"
+                  placeholder="130"
+                />
+              </div>
+
+              {/* 体重（最新体組成がある場合は非表示） */}
+              {latestWeightKg !== null ? (
+                <div className="rounded-lg bg-muted/50 px-4 py-3 text-sm text-muted-foreground">
+                  体重：{latestWeightKg}kg（最新の体組成から自動設定）
+                </div>
+              ) : (
+                <div className="space-y-1.5">
+                  <Label htmlFor="aerobic-weight">体重（kg）</Label>
+                  <Input
+                    id="aerobic-weight"
+                    inputMode="decimal"
+                    value={aerobicWeightKg}
+                    onChange={(e) => setAerobicWeightKg(e.target.value)}
+                    className="h-11 text-base"
+                    placeholder="70"
+                  />
+                </div>
+              )}
+
+              {/* 日付 */}
+              <div className="space-y-1.5">
+                <Label htmlFor="aerobic-date">日付</Label>
+                <Input
+                  id="aerobic-date"
+                  type="date"
+                  value={aerobicSessionDate}
+                  max={today}
+                  onChange={(e) => setAerobicSessionDate(e.target.value)}
+                  className="h-11"
+                />
+              </div>
+
+              {/* メモ */}
+              <div className="space-y-1.5">
+                <Label htmlFor="aerobic-memo">メモ（任意）</Label>
+                <textarea
+                  id="aerobic-memo"
+                  value={aerobicMemo}
+                  onChange={(e) => setAerobicMemo(e.target.value)}
+                  maxLength={200}
+                  rows={2}
+                  className="w-full rounded-lg border border-input bg-background px-3 py-2 text-base focus:outline-none focus:ring-2 focus:ring-ring"
+                />
+              </div>
+
+              {/* 保存ボタン */}
+              <Button
+                type="button"
+                size="lg"
+                className="w-full"
+                disabled={!isAerobicValid || aerobicCreateMutation.isPending}
+                onClick={() => aerobicCreateMutation.mutate()}
+              >
+                {aerobicCreateMutation.isPending ? '記録中...' : '記録する'}
+              </Button>
+            </>
+          )}
+
+          {/* ─── 筋トレフォーム ─── */}
+          {(mode === 'edit' || inputCategory === 'strength') && (
+            <>
           {/* 種目選択（create / edit 共通） */}
           <div className="space-y-1.5">
             <Label>種目</Label>
@@ -428,6 +675,9 @@ export function SetInputModal({ mode, initialData, open, onOpenChange, extraInva
               </Button>
             </div>
           )}
+            </>
+          )}
+
         </div>
       </div>
     </div>

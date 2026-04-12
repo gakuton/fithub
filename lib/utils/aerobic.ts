@@ -1,3 +1,20 @@
+import { ACTIVITY_TYPE_LABELS, INTENSITY_OPTIONS, type ActivityType } from '@/lib/validations/aerobic';
+
+export function formatAerobicRow(session: {
+  activityType: string;
+  intensity: string;
+  durationMin: number;
+  kcalBurned: number;
+  distanceKm?: number | null;
+}): string {
+  const typeLabel = ACTIVITY_TYPE_LABELS[session.activityType as ActivityType] ?? session.activityType;
+  const intensityOpts = INTENSITY_OPTIONS[session.activityType as ActivityType] ?? [];
+  const intensityLabel = intensityOpts.find((o) => o.value === session.intensity)?.label ?? session.intensity;
+  let text = `${typeLabel}（${intensityLabel}）　${session.durationMin}分　消費: ${Math.round(session.kcalBurned)}kcal`;
+  if (session.distanceKm) text += `　/ ${session.distanceKm}km`;
+  return text;
+}
+
 const MET_TABLE: Record<string, Record<string, number>> = {
   walking: { moderate: 3.5, brisk: 5.0 },
   running: { slow: 8.3,     moderate: 10.0 },
