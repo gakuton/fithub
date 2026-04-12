@@ -199,7 +199,10 @@ type BodyRow = {
   bmr: number | null;
 };
 
-export function buildBodyText(rows: BodyRow[]): string {
+export function buildBodyText(
+  rows: BodyRow[],
+  profile?: { body: BodyComposition | null; demog: DemographicData | null; motivation: MotivationData | null },
+): string {
   const lines: string[] = [];
   lines.push('---');
   lines.push('FitHub 体組成履歴');
@@ -217,6 +220,7 @@ export function buildBodyText(rows: BodyRow[]): string {
   }
 
   lines.push('---');
+  if (profile) lines.push(buildProfileText(profile.body, profile.demog, profile.motivation));
   return lines.join('\n');
 }
 

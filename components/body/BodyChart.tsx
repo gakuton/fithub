@@ -13,6 +13,7 @@ import {
 } from 'recharts';
 import { TrendingUp, AlertCircle } from 'lucide-react';
 import { EmptyState } from '@/components/common/EmptyState';
+import { ExportBodyButton } from './ExportBodyButton';
 
 type BodyRow = {
   id: string;
@@ -65,7 +66,10 @@ export function BodyChart() {
 
   return (
     <div className="rounded-2xl border bg-card px-4 py-5">
-      <h2 className="mb-4 text-sm font-semibold">推移グラフ</h2>
+      <div className="mb-4 flex items-center justify-between">
+        <h2 className="text-sm font-semibold">推移グラフ</h2>
+        <ExportBodyButton />
+      </div>
       <ResponsiveContainer width="100%" height={240}>
         <LineChart data={chartData} margin={{ top: 4, right: 8, left: -16, bottom: 0 }}>
           <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
