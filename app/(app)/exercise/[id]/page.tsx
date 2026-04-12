@@ -78,7 +78,7 @@ export default function ExerciseDetailPage({
       {/* 戻るボタン */}
       <button
         type="button"
-        onClick={() => router.back()}
+        onClick={() => router.push('/history?tab=exercise')}
         className="flex min-h-[44px] items-center gap-1 text-sm text-muted-foreground hover:text-foreground"
       >
         <ChevronLeft size={16} />

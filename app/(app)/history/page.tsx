@@ -1,13 +1,20 @@
 'use client';
 
-import { useState } from 'react';
+import { Suspense } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { ExerciseTab } from '@/components/history/ExerciseTab';
 import { DateTab } from '@/components/history/DateTab';
 
 type Tab = 'date' | 'exercise';
 
-export default function HistoryPage() {
-  const [tab, setTab] = useState<Tab>('date');
+function HistoryContent() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const tab = (searchParams.get('tab') as Tab) === 'exercise' ? 'exercise' : 'date';
+
+  const setTab = (t: Tab) => {
+    router.replace(t === 'date' ? '/history' : '/history?tab=exercise');
+  };
 
   return (
     <div className="mx-auto max-w-lg px-4 pt-6">
@@ -32,5 +39,13 @@ export default function HistoryPage() {
 
       {tab === 'exercise' ? <ExerciseTab /> : <DateTab />}
     </div>
+  );
+}
+
+export default function HistoryPage() {
+  return (
+    <Suspense>
+      <HistoryContent />
+    </Suspense>
   );
 }
