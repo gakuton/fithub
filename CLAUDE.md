@@ -41,10 +41,10 @@ Next.js 16 / TypeScript / Tailwind CSS / shadcn/ui / Drizzle ORM / SQLite(Turso)
 ## 実装予定
 
 ### Phase3.1（体組成テーブル拡張）— Issue #3
-- `body_compositions` に `bmr`（基礎代謝・kcal）と `visceral_fat_index`（内臓脂肪指数）を追加
+- `body_compositions` に `visceral_fat_index`（内臓脂肪指数）を追加
 - Omron体組成計の実測値確認後に設計ドキュメントを更新してから実装
 - PR-16：DBスキーマ＋マイグレーション
-- PR-17：API＋UI（入力フォーム2項目追加）＋テキスト出力反映
+- PR-17：API＋UI（入力フォーム1項目追加）＋テキスト出力反映
 
 ### Phase4（マルチユーザー認証）— Issue #4
 - Clerk（メール＋パスワード、自己サインアップ）
@@ -57,7 +57,7 @@ Next.js 16 / TypeScript / Tailwind CSS / shadcn/ui / Drizzle ORM / SQLite(Turso)
 - `workout_sets`：トレーニングセット（exerciseId, workoutDate, setNumber, weightKg, reps, estimated1rm）
 - `meals`：食事レコード（mealDate, mealType）
 - `meal_items`：食事アイテム（mealId, foodName, proteinG, fatG, carbG, kcal）
-- `body_compositions`：体組成（measuredDate, weightKg, bodyFatPct, skeletalMuscleKg）※bmr・visceral_fat_index はPhase3.1で追加予定
+- `body_compositions`：体組成（measuredDate, weightKg, bodyFatPct, skeletalMuscleKg, bmr）※visceral_fat_index はPhase3.1で追加予定
 - `demographic_data`：デモグラフィック（id='default', gender, heightCm, birthDate, activityLevel）
 - `motivations`：目標（category, description, achievedAt）
 
