@@ -66,15 +66,13 @@ export function BodyChart() {
   return (
     <div className="rounded-2xl border bg-card px-4 py-5">
       <h2 className="mb-4 text-sm font-semibold">推移グラフ</h2>
-      <div className="overflow-x-auto">
-      <div style={{ minWidth: 480 }}>
       <ResponsiveContainer width="100%" height={240}>
-        <LineChart data={chartData} margin={{ top: 4, right: hasBmr ? 48 : 8, left: -16, bottom: 0 }}>
+        <LineChart data={chartData} margin={{ top: 4, right: 8, left: -16, bottom: 0 }}>
           <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
           <XAxis dataKey="date" tick={{ fontSize: 11 }} />
           <YAxis yAxisId="left" tick={{ fontSize: 11 }} />
           {hasBmr && (
-            <YAxis yAxisId="right" orientation="right" tick={{ fontSize: 11 }} />
+            <YAxis yAxisId="right" orientation="right" tick={{ fontSize: 11 }} width={40} />
           )}
           <Tooltip
             contentStyle={{
@@ -125,8 +123,6 @@ export function BodyChart() {
           )}
         </LineChart>
       </ResponsiveContainer>
-      </div>
-      </div>
     </div>
   );
 }
