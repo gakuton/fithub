@@ -189,6 +189,37 @@ export function buildMealWeekText(
   return lines.join('\n');
 }
 
+// ─── 体組成テキスト出力 ──────────────────────────────────
+
+type BodyRow = {
+  measuredDate: string;
+  weightKg: number;
+  bodyFatPct: number | null;
+  skeletalMuscleKg: number | null;
+  bmr: number | null;
+};
+
+export function buildBodyText(rows: BodyRow[]): string {
+  const lines: string[] = [];
+  lines.push('---');
+  lines.push('FitHub 体組成履歴');
+  lines.push('---');
+  lines.push('');
+  lines.push('【体組成履歴】');
+
+  const sorted = [...rows].sort((a, b) => b.measuredDate.localeCompare(a.measuredDate));
+  for (const r of sorted) {
+    const parts = [`体重 ${r.weightKg}kg`];
+    if (r.bodyFatPct       !== null) parts.push(`体脂肪率 ${r.bodyFatPct}%`);
+    if (r.skeletalMuscleKg !== null) parts.push(`骨格筋量 ${r.skeletalMuscleKg}kg`);
+    if (r.bmr              !== null) parts.push(`基礎代謝 ${r.bmr}kcal`);
+    lines.push(`${r.measuredDate}: ${parts.join(' / ')}`);
+  }
+
+  lines.push('---');
+  return lines.join('\n');
+}
+
 export function downloadTxt(filename: string, content: string) {
   const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
   const url = URL.createObjectURL(blob);
