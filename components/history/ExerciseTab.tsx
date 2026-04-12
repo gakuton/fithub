@@ -2,7 +2,7 @@
 
 import { useQuery } from '@tanstack/react-query';
 import { useRouter } from 'next/navigation';
-import { ChevronRight, Dumbbell, AlertCircle } from 'lucide-react';
+import { ChevronRight, Dumbbell, AlertCircle, Wind } from 'lucide-react';
 import { EmptyState } from '@/components/common/EmptyState';
 
 type Exercise = { id: string; name: string; category: string | null };
@@ -65,6 +65,24 @@ export function ExerciseTab() {
           </div>
         </div>
       ))}
+
+      {/* 有酸素カテゴリ */}
+      <div>
+        <p className="mb-2 px-1 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+          有酸素
+        </p>
+        <div className="overflow-hidden rounded-2xl border bg-card">
+          <button
+            type="button"
+            onClick={() => router.push('/aerobic')}
+            className="flex min-h-[52px] w-full items-center gap-3 px-4 py-3 text-left hover:bg-muted/30 active:bg-muted/50 transition-colors"
+          >
+            <Wind size={16} className="shrink-0 text-sky-500" />
+            <span className="flex-1 text-sm font-medium">有酸素運動の履歴</span>
+            <ChevronRight size={16} className="text-muted-foreground" />
+          </button>
+        </div>
+      </div>
     </div>
   );
 }

@@ -4,7 +4,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import { Download } from 'lucide-react';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
-import { buildTodayText, downloadTxt } from '@/lib/utils/export';
+import { buildTodayText, downloadTxt, type AerobicSessionExport } from '@/lib/utils/export';
 import { localToday } from '@/lib/utils/date';
 
 type SetRow = {
@@ -50,14 +50,22 @@ export function ExportTodayButton() {
   const today = localToday();
 
   const handleExport = async () => {
-    const cachedSets  = queryClient.getQueryData<{ data: GroupedExercise[] }>(['sets', 'today', today]);
-    const cachedMeals = queryClient.getQueryData<DayMeals>(['meal-items', 'date', today]);
+    const cachedSets    = queryClient.getQueryData<{ data: GroupedExercise[] }>(['sets', 'today', today]);
+    const cachedMeals   = queryClient.getQueryData<DayMeals>(['meal-items', 'date', today]);
+    const cachedAerobic = queryClient.getQueryData<{ data: AerobicSessionExport[] }>(['aerobic-sessions', 'date', today]);
 
     const groups     = cachedSets?.data ?? [];
     const mealGroups = cachedMeals?.data ?? [];
     const mealTotal  = cachedMeals?.total;
 
-    if (groups.length === 0 && mealGroups.length === 0) {
+    // 有酸素はキャッシュ優先、なければフェッチ
+    const aerobicSessions: AerobicSessionExport[] = cachedAerobic?.data
+      ? cachedAerobic.data
+      : await fetch(`/api/aerobic-sessions?date=${today}`)
+          .then((r) => r.json())
+          .then((j) => j.data ?? []);
+
+    if (groups.length === 0 && mealGroups.length === 0 && aerobicSessions.length === 0) {
       toast.error('今日の記録がありません');
       return;
     }
@@ -87,7 +95,7 @@ export function ExportTodayButton() {
       motivation: motivRes?.data?.[0] ?? null,
     };
 
-    const text = buildTodayText(groups, today, undefined, mealGroups, mealTotal, profile);
+    const text = buildTodayText(groups, today, aerobicSessions, mealGroups, mealTotal, profile);
     downloadTxt(`fithub_today_${today}.txt`, text);
   };
 
