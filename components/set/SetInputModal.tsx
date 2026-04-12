@@ -478,7 +478,7 @@ export function SetInputModal({ mode, initialData, open, onOpenChange, extraInva
                 <div className="grid grid-cols-2 gap-3">
                   <div className="space-y-1.5">
                     <Label htmlFor="aerobic-distance">
-                      距離（km）<span className="ml-0.5 rounded-full bg-muted px-1.5 py-0.5 text-[10px] font-medium">任意</span>
+                      距離（km）<span className="ml-0 rounded-full bg-muted px-1.5 py-0.5 text-[10px] font-medium">任意</span>
                     </Label>
                     <Input
                       id="aerobic-distance"
@@ -491,7 +491,7 @@ export function SetInputModal({ mode, initialData, open, onOpenChange, extraInva
                   </div>
                   <div className="space-y-1.5">
                     <Label htmlFor="aerobic-hr">
-                      心拍数（bpm）<span className="ml-0.5 rounded-full bg-muted px-1.5 py-0.5 text-[10px] font-medium">任意</span>
+                      心拍数（bpm）<span className="ml-0 rounded-full bg-muted px-1.5 py-0.5 text-[10px] font-medium">任意</span>
                     </Label>
                     <Input
                       id="aerobic-hr"
@@ -506,7 +506,7 @@ export function SetInputModal({ mode, initialData, open, onOpenChange, extraInva
               ) : (
                 <div className="space-y-1.5">
                   <Label htmlFor="aerobic-hr">
-                    平均心拍数（bpm）<span className="ml-0.5 rounded-full bg-muted px-1.5 py-0.5 text-[10px] font-medium">任意</span>
+                    平均心拍数（bpm）<span className="ml-0 rounded-full bg-muted px-1.5 py-0.5 text-[10px] font-medium">任意</span>
                   </Label>
                   <Input
                     id="aerobic-hr"
@@ -535,7 +535,7 @@ export function SetInputModal({ mode, initialData, open, onOpenChange, extraInva
               {/* メモ */}
               <div className="space-y-1.5">
                 <Label htmlFor="aerobic-memo">
-                  メモ<span className="ml-0.5 rounded-full bg-muted px-1.5 py-0.5 text-[10px] font-medium">任意</span>
+                  メモ<span className="ml-0 rounded-full bg-muted px-1.5 py-0.5 text-[10px] font-medium">任意</span>
                 </Label>
                 <textarea
                   id="aerobic-memo"
