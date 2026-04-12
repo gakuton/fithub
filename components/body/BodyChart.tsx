@@ -20,6 +20,7 @@ type BodyRow = {
   weightKg: number;
   bodyFatPct: number | null;
   skeletalMuscleKg: number | null;
+  bmr: number | null;
 };
 
 function formatDate(dateStr: string) {
@@ -52,21 +53,27 @@ export function BodyChart() {
     return <EmptyState icon={TrendingUp} message="記録がありません" sub="上のフォームから体組成を記録しましょう" />;
   }
 
+  const hasBmr = rows.some((r) => r.bmr !== null);
+
   const chartData = rows.map((r) => ({
     date: formatDate(r.measuredDate),
     体重: r.weightKg,
     体脂肪率: r.bodyFatPct,
     骨格筋量: r.skeletalMuscleKg,
+    基礎代謝: r.bmr,
   }));
 
   return (
     <div className="rounded-2xl border bg-card px-4 py-5">
       <h2 className="mb-4 text-sm font-semibold">推移グラフ</h2>
       <ResponsiveContainer width="100%" height={240}>
-        <LineChart data={chartData} margin={{ top: 4, right: 8, left: -16, bottom: 0 }}>
+        <LineChart data={chartData} margin={{ top: 4, right: hasBmr ? 40 : 8, left: -16, bottom: 0 }}>
           <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
           <XAxis dataKey="date" tick={{ fontSize: 11 }} />
-          <YAxis tick={{ fontSize: 11 }} />
+          <YAxis yAxisId="left" tick={{ fontSize: 11 }} />
+          {hasBmr && (
+            <YAxis yAxisId="right" orientation="right" tick={{ fontSize: 11 }} unit="kcal" />
+          )}
           <Tooltip
             contentStyle={{
               backgroundColor: 'hsl(var(--card))',
@@ -77,6 +84,7 @@ export function BodyChart() {
           />
           <Legend wrapperStyle={{ fontSize: 12 }} />
           <Line
+            yAxisId="left"
             type="monotone"
             dataKey="体重"
             stroke="#6366f1"
@@ -85,6 +93,7 @@ export function BodyChart() {
             connectNulls
           />
           <Line
+            yAxisId="left"
             type="monotone"
             dataKey="体脂肪率"
             stroke="#f97316"
@@ -93,6 +102,7 @@ export function BodyChart() {
             connectNulls
           />
           <Line
+            yAxisId="left"
             type="monotone"
             dataKey="骨格筋量"
             stroke="#22c55e"
@@ -100,6 +110,17 @@ export function BodyChart() {
             dot={false}
             connectNulls
           />
+          {hasBmr && (
+            <Line
+              yAxisId="right"
+              type="monotone"
+              dataKey="基礎代謝"
+              stroke="#a855f7"
+              strokeWidth={2}
+              dot={false}
+              connectNulls
+            />
+          )}
         </LineChart>
       </ResponsiveContainer>
     </div>
