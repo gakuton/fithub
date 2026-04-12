@@ -49,26 +49,44 @@ export function ExportTodayButton() {
   const queryClient = useQueryClient();
   const today = localToday();
 
-  const handleExport = () => {
+  const handleExport = async () => {
     const cachedSets  = queryClient.getQueryData<{ data: GroupedExercise[] }>(['sets', 'today', today]);
     const cachedMeals = queryClient.getQueryData<DayMeals>(['meal-items', 'date', today]);
-    const cachedBody  = queryClient.getQueryData<{ data: BodyComposition | null }>(['body-compositions', 'latest']);
-    const cachedDemog = queryClient.getQueryData<{ data: DemographicData | null }>(['profile', 'demographic']);
-    const cachedMotiv = queryClient.getQueryData<{ data: MotivationData[] }>(['profile', 'motivations']);
 
     const groups     = cachedSets?.data ?? [];
     const mealGroups = cachedMeals?.data ?? [];
     const mealTotal  = cachedMeals?.total;
-    const profile    = {
-      body:       cachedBody?.data  ?? null,
-      demog:      cachedDemog?.data ?? null,
-      motivation: cachedMotiv?.data?.[0] ?? null,
-    };
 
     if (groups.length === 0 && mealGroups.length === 0) {
       toast.error('今日の記録がありません');
       return;
     }
+
+    // プロフィールデータはキャッシュ優先、なければ直接フェッチ
+    const [bodyRes, demogRes, motivRes] = await Promise.all([
+      queryClient.fetchQuery<{ data: BodyComposition | null }>({
+        queryKey: ['body-compositions', 'latest'],
+        queryFn: () => fetch('/api/body-compositions/latest').then((r) => r.json()),
+        staleTime: 60_000,
+      }),
+      queryClient.fetchQuery<{ data: DemographicData | null }>({
+        queryKey: ['profile', 'demographic'],
+        queryFn: () => fetch('/api/profile/demographic').then((r) => r.json()),
+        staleTime: 60_000,
+      }),
+      queryClient.fetchQuery<{ data: MotivationData[] }>({
+        queryKey: ['profile', 'motivations'],
+        queryFn: () => fetch('/api/profile/motivations').then((r) => r.json()),
+        staleTime: 60_000,
+      }),
+    ]);
+
+    const profile = {
+      body:       bodyRes?.data  ?? null,
+      demog:      demogRes?.data ?? null,
+      motivation: motivRes?.data?.[0] ?? null,
+    };
+
     const text = buildTodayText(groups, today, mealGroups, mealTotal, profile);
     downloadTxt(`fithub_today_${today}.txt`, text);
   };
