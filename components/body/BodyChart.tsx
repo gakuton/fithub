@@ -72,7 +72,7 @@ export function BodyChart() {
           <XAxis dataKey="date" tick={{ fontSize: 11 }} />
           <YAxis yAxisId="left" tick={{ fontSize: 11 }} />
           {hasBmr && (
-            <YAxis yAxisId="right" orientation="right" tick={{ fontSize: 11 }} unit="kcal" />
+            <YAxis yAxisId="right" orientation="right" tick={{ fontSize: 11 }} />
           )}
           <Tooltip
             contentStyle={{
