@@ -20,17 +20,18 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: parsed.error.flatten() }, { status: 400 });
   }
 
-  const { measuredDate, weightKg, bodyFatPct, skeletalMuscleKg } = parsed.data;
+  const { measuredDate, weightKg, bodyFatPct, skeletalMuscleKg, bmr } = parsed.data;
 
   const [record] = await db
     .insert(bodyCompositions)
-    .values({ measuredDate, weightKg, bodyFatPct, skeletalMuscleKg })
+    .values({ measuredDate, weightKg, bodyFatPct, skeletalMuscleKg, bmr })
     .onConflictDoUpdate({
       target: bodyCompositions.measuredDate,
       set: {
         weightKg,
         bodyFatPct:       bodyFatPct ?? null,
         skeletalMuscleKg: skeletalMuscleKg ?? null,
+        bmr:              bmr ?? null,
         updatedAt:        new Date().toISOString(),
       },
     })

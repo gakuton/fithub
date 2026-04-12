@@ -41,7 +41,7 @@ type DayMeals = {
   total: { kcal: number; protein_g: number; fat_g: number; carb_g: number };
 };
 
-type BodyComposition = { measuredDate: string; weightKg: number; bodyFatPct: number | null };
+type BodyComposition = { measuredDate: string; weightKg: number; bodyFatPct: number | null; skeletalMuscleKg: number | null; bmr: number | null };
 type DemographicData = { gender: string | null; heightCm: number | null; birthDate: string | null; activityLevel: string | null };
 type MotivationData  = { category: string | null; description: string | null };
 

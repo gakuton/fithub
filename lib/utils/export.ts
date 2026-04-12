@@ -4,6 +4,8 @@ type BodyComposition = {
   measuredDate: string;
   weightKg: number;
   bodyFatPct: number | null;
+  skeletalMuscleKg: number | null;
+  bmr: number | null;
 };
 
 type DemographicData = {
@@ -54,8 +56,10 @@ export function buildProfileText(
     lines.push('---');
     lines.push('【最新の体組成】');
     const parts = [`測定日：${formatJpDate(body.measuredDate)}`, `体重：${body.weightKg}kg`];
-    if (body.bodyFatPct !== null) parts.push(`体脂肪率：${body.bodyFatPct}%`);
+    if (body.bodyFatPct        !== null) parts.push(`体脂肪率：${body.bodyFatPct}%`);
+    if (body.skeletalMuscleKg  !== null) parts.push(`骨格筋量：${body.skeletalMuscleKg}kg`);
     lines.push(parts.join('　'));
+    if (body.bmr !== null) lines.push(`基礎代謝：${body.bmr}kcal`);
   }
 
   const demogParts: string[] = [];

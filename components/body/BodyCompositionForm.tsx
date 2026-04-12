@@ -16,6 +16,7 @@ export function BodyCompositionForm() {
   const [weightKg,         setWeightKg]         = useState('');
   const [bodyFatPct,       setBodyFatPct]       = useState('');
   const [skeletalMuscleKg, setSkeletalMuscleKg] = useState('');
+  const [bmr,              setBmr]              = useState('');
 
   const isValid = weightKg !== '' && parseFloat(weightKg) > 0;
 
@@ -29,6 +30,7 @@ export function BodyCompositionForm() {
           weightKg:         parseFloat(weightKg),
           bodyFatPct:       bodyFatPct       !== '' ? parseFloat(bodyFatPct)       : undefined,
           skeletalMuscleKg: skeletalMuscleKg !== '' ? parseFloat(skeletalMuscleKg) : undefined,
+          bmr:              bmr              !== '' ? parseFloat(bmr)              : undefined,
         }),
       });
       const json = await res.json();
@@ -89,6 +91,19 @@ export function BodyCompositionForm() {
             inputMode="decimal"
             value={skeletalMuscleKg}
             onChange={(e) => setSkeletalMuscleKg(e.target.value)}
+            className="h-11 text-base"
+          />
+        </div>
+      </div>
+
+      <div className="grid grid-cols-2 gap-3">
+        <div className="space-y-1.5">
+          <Label htmlFor="bmr">基礎代謝 (kcal)</Label>
+          <Input
+            id="bmr"
+            inputMode="decimal"
+            value={bmr}
+            onChange={(e) => setBmr(e.target.value)}
             className="h-11 text-base"
           />
         </div>
