@@ -643,7 +643,7 @@ export function SetInputModal({ mode, initialData, open, onOpenChange, extraInva
 
           {/* メモ */}
           <div className="space-y-1.5">
-            <Label htmlFor="memo">メモ（任意）</Label>
+            <Label htmlFor="memo">メモ<span className="ml-0 rounded-full bg-muted px-1.5 py-0.5 text-[10px] font-medium">任意</span></Label>
             <textarea
               id="memo"
               value={memo}

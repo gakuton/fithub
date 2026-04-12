@@ -195,7 +195,7 @@ export function MealAddModal({ open, onOpenChange, defaultDate, defaultMealType,
           {/* 食品名 */}
           <div className="space-y-1.5">
             <Label>
-              食品名 <span className="text-xs text-muted-foreground">（任意）</span>
+              食品名<span className="ml-0 rounded-full bg-muted px-1.5 py-0.5 text-[10px] font-medium">任意</span>
             </Label>
             <Input
               value={foodName}
