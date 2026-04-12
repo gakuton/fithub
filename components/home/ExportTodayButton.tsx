@@ -87,7 +87,7 @@ export function ExportTodayButton() {
       motivation: motivRes?.data?.[0] ?? null,
     };
 
-    const text = buildTodayText(groups, today, mealGroups, mealTotal, profile);
+    const text = buildTodayText(groups, today, undefined, mealGroups, mealTotal, profile);
     downloadTxt(`fithub_today_${today}.txt`, text);
   };
 

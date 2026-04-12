@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { UserCircle } from 'lucide-react';
 import { TodaySetList } from '@/components/home/TodaySetList';
+import { TodayAerobicList } from '@/components/home/TodayAerobicList';
 import { ExportTodayButton } from '@/components/home/ExportTodayButton';
 import { BodyCompositionSummary } from '@/components/home/BodyCompositionSummary';
 import { MealSummaryCard } from '@/components/meal/MealSummaryCard';
@@ -50,6 +51,7 @@ export default function HomePage() {
           <ExportTodayButton />
         </div>
         <TodaySetList onAdd={() => setSetModalOpen(true)} />
+        <TodayAerobicList />
       </section>
 
       {/* 食事 */}

@@ -253,6 +253,7 @@ type GroupedExercise = {
 export function buildTodayText(
   groups: GroupedExercise[],
   date: string,
+  aerobicSessions?: AerobicSessionExport[],
   mealGroups?: MealGroup[],
   mealTotal?: { kcal: number; protein_g: number; fat_g: number; carb_g: number },
   profile?: { body: BodyComposition | null; demog: DemographicData | null; motivation: MotivationData | null },
@@ -302,6 +303,14 @@ export function buildTodayText(
   }
   lines.push('---');
 
+  // 有酸素データがあれば追記
+  if (aerobicSessions && aerobicSessions.length > 0) {
+    lines.push('');
+    lines.push('【有酸素運動】');
+    for (const s of aerobicSessions) lines.push(formatAerobicLine(s));
+    lines.push('---');
+  }
+
   // 食事データがあれば追記
   if (mealGroups && mealGroups.length > 0 && mealTotal) {
     lines.push('');
@@ -314,6 +323,113 @@ export function buildTodayText(
 
   if (profile) lines.push(buildProfileText(profile.body, profile.demog, profile.motivation));
 
+  return lines.join('\n');
+}
+
+// ─── 有酸素セッション型（エクスポート共通）─────────────────
+
+import { ACTIVITY_TYPE_LABELS, INTENSITY_OPTIONS, type ActivityType } from '@/lib/validations/aerobic';
+
+export type AerobicSessionExport = {
+  sessionDate: string;
+  activityType: string;
+  intensity: string;
+  durationMin: number;
+  distanceKm: number | null;
+  kcalBurned: number;
+  memo: string | null;
+};
+
+function formatAerobicLine(s: AerobicSessionExport): string {
+  const typeLabel      = ACTIVITY_TYPE_LABELS[s.activityType as ActivityType] ?? s.activityType;
+  const intensityLabel = (INTENSITY_OPTIONS[s.activityType as ActivityType] ?? [])
+    .find((o) => o.value === s.intensity)?.label ?? s.intensity;
+  let line = `  ${typeLabel}（${intensityLabel}）　${s.durationMin}分　消費: ${Math.round(s.kcalBurned)}kcal`;
+  if (s.distanceKm) line += `　/ ${s.distanceKm}km`;
+  return line;
+}
+
+// ─── 日付別テキスト出力（UC-09）────────────────────────────
+
+type DateSetGroup = {
+  exerciseName: string;
+  category: string | null;
+  sets: Array<{
+    setNumber: number;
+    isBodyweight: boolean;
+    weightKg: number | null;
+    reps: number;
+    estimated1rm: number | null;
+  }>;
+};
+
+export function buildDateText(
+  date: string,
+  groups: DateSetGroup[],
+  aerobicSessions: AerobicSessionExport[],
+  profile?: { body: BodyComposition | null; demog: DemographicData | null; motivation: MotivationData | null },
+): string {
+  const lines: string[] = [];
+  lines.push('---');
+  lines.push(`FitHub ${formatJpDate(date)} の記録`);
+  lines.push('---');
+  lines.push('');
+
+  if (groups.length > 0) {
+    lines.push('【トレーニング】');
+    for (const group of groups) {
+      const cat = group.category ? `（${group.category}）` : '';
+      lines.push(`${group.exerciseName}${cat}`);
+      for (const set of group.sets) {
+        let line = `  セット${set.setNumber}：`;
+        if (set.isBodyweight) {
+          line += `自重 × ${set.reps}回`;
+        } else {
+          line += `${set.weightKg}kg × ${set.reps}回`;
+          if (set.estimated1rm !== null) line += `　推定1RM: ${set.estimated1rm}kg`;
+        }
+        lines.push(line);
+      }
+    }
+    lines.push('');
+  }
+
+  if (aerobicSessions.length > 0) {
+    lines.push('【有酸素運動】');
+    for (const s of aerobicSessions) lines.push(formatAerobicLine(s));
+    lines.push('');
+  }
+
+  lines.push('---');
+  if (profile) lines.push(buildProfileText(profile.body, profile.demog, profile.motivation));
+  return lines.join('\n');
+}
+
+// ─── 有酸素履歴テキスト出力（UC-07）───────────────────────
+
+export function buildAerobicText(
+  sessions: AerobicSessionExport[],
+  profile?: { body: BodyComposition | null; demog: DemographicData | null; motivation: MotivationData | null },
+): string {
+  const lines: string[] = [];
+  lines.push('---');
+  lines.push('FitHub 有酸素運動履歴');
+  lines.push('---');
+  lines.push('');
+
+  const sorted = [...sessions].sort((a, b) => b.sessionDate.localeCompare(a.sessionDate));
+  for (const s of sorted) {
+    const typeLabel      = ACTIVITY_TYPE_LABELS[s.activityType as ActivityType] ?? s.activityType;
+    const intensityLabel = (INTENSITY_OPTIONS[s.activityType as ActivityType] ?? [])
+      .find((o) => o.value === s.intensity)?.label ?? s.intensity;
+    let line = `${s.sessionDate}: ${typeLabel}（${intensityLabel}）　${s.durationMin}分　消費: ${Math.round(s.kcalBurned)}kcal`;
+    if (s.distanceKm) line += `　/ ${s.distanceKm}km`;
+    if (s.memo)       line += `　メモ: ${s.memo}`;
+    lines.push(line);
+  }
+
+  lines.push('---');
+  if (profile) lines.push(buildProfileText(profile.body, profile.demog, profile.motivation));
   return lines.join('\n');
 }
 
