@@ -124,6 +124,55 @@ function ExercisePicker({
   );
 }
 
+// ─── 有酸素種目ピッカー ────────────────────────────────
+function ActivityTypePicker({
+  value,
+  onChange,
+}: {
+  value: ActivityType;
+  onChange: (type: ActivityType) => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+    };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, []);
+
+  return (
+    <div ref={ref} className="relative">
+      <button
+        type="button"
+        onClick={() => setOpen((v) => !v)}
+        className="flex min-h-[44px] w-full items-center justify-between rounded-lg border border-input bg-background px-3 py-2 text-sm"
+      >
+        <span className="text-foreground">{ACTIVITY_TYPE_LABELS[value]}</span>
+        <ChevronDown size={16} className="text-muted-foreground" />
+      </button>
+      {open && (
+        <div className="absolute z-50 mt-1 w-full overflow-hidden rounded-lg border bg-popover text-popover-foreground shadow-md">
+          {ACTIVITY_TYPES.map((type) => (
+            <button
+              key={type}
+              type="button"
+              onClick={() => { onChange(type); setOpen(false); }}
+              className={`flex min-h-[44px] w-full items-center px-3 py-2 text-sm hover:bg-accent ${
+                type === value ? 'bg-accent font-medium' : ''
+              }`}
+            >
+              {ACTIVITY_TYPE_LABELS[type]}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 // ─── メインコンポーネント ──────────────────────────────
 export function SetInputModal({ mode, initialData, open, onOpenChange, extraInvalidateKey }: Props) {
   const queryClient = useQueryClient();
@@ -383,19 +432,10 @@ export function SetInputModal({ mode, initialData, open, onOpenChange, extraInva
           {/* ─── 有酸素フォーム ─── */}
           {mode === 'create' && inputCategory === 'aerobic' && (
             <>
-              {/* 活動種目（プルダウン） */}
+              {/* 活動種目 */}
               <div className="space-y-1.5">
-                <Label htmlFor="aerobic-type">種目</Label>
-                <select
-                  id="aerobic-type"
-                  value={aerobicActivityType}
-                  onChange={(e) => setAerobicActivityType(e.target.value as ActivityType)}
-                  className="h-11 w-full rounded-lg border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
-                >
-                  {ACTIVITY_TYPES.map((type) => (
-                    <option key={type} value={type}>{ACTIVITY_TYPE_LABELS[type]}</option>
-                  ))}
-                </select>
+                <Label>種目</Label>
+                <ActivityTypePicker value={aerobicActivityType} onChange={setAerobicActivityType} />
               </div>
 
               {/* 強度 */}

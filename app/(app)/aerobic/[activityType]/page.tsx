@@ -153,8 +153,8 @@ export default function AerobicActivityPage({ params }: { params: Promise<{ acti
           {dateGroups.map(({ date, sessions: daySessions }) => (
             <div key={date} className="overflow-hidden rounded-2xl border bg-card">
               {/* 日付ヘッダー */}
-              <div className="px-4 py-2.5 border-b">
-                <p className="text-sm font-semibold">{formatDate(date)}</p>
+              <div className="border-b bg-muted/40 px-4 py-2 text-xs font-semibold text-muted-foreground">
+                {formatDate(date)}
               </div>
               {/* セッション一覧 */}
               <div className="divide-y">

@@ -1,9 +1,9 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import { X } from 'lucide-react';
+import { X, ChevronDown } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -31,6 +31,58 @@ type Props = {
   extraInvalidateKey?: unknown[];
 };
 
+// ─── 種目ピッカー ──────────────────────────────────────
+
+function ActivityTypePicker({
+  value,
+  onChange,
+}: {
+  value: ActivityType;
+  onChange: (type: ActivityType) => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+    };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, []);
+
+  return (
+    <div ref={ref} className="relative">
+      <button
+        type="button"
+        onClick={() => setOpen((v) => !v)}
+        className="flex min-h-[44px] w-full items-center justify-between rounded-lg border border-input bg-background px-3 py-2 text-sm"
+      >
+        <span className="text-foreground">{ACTIVITY_TYPE_LABELS[value]}</span>
+        <ChevronDown size={16} className="text-muted-foreground" />
+      </button>
+      {open && (
+        <div className="absolute z-50 mt-1 w-full overflow-hidden rounded-lg border bg-popover text-popover-foreground shadow-md">
+          {ACTIVITY_TYPES.map((type) => (
+            <button
+              key={type}
+              type="button"
+              onClick={() => { onChange(type); setOpen(false); }}
+              className={`flex min-h-[44px] w-full items-center px-3 py-2 text-sm hover:bg-accent ${
+                type === value ? 'bg-accent font-medium' : ''
+              }`}
+            >
+              {ACTIVITY_TYPE_LABELS[type]}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ─── メインコンポーネント ──────────────────────────────
+
 export function AerobicEditModal({ session, open, onOpenChange, extraInvalidateKey }: Props) {
   const queryClient = useQueryClient();
   const today = localToday();
@@ -41,7 +93,6 @@ export function AerobicEditModal({ session, open, onOpenChange, extraInvalidateK
   const [durationMin,   setDurationMin]   = useState(session.durationMin.toString());
   const [distanceKm,    setDistanceKm]    = useState(session.distanceKm?.toString() ?? '');
   const [avgHeartRate,  setAvgHeartRate]  = useState(session.avgHeartRate?.toString() ?? '');
-  const [weightKg,      setWeightKg]      = useState(session.weightKg.toString());
   const [memo,          setMemo]          = useState(session.memo ?? '');
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
@@ -59,7 +110,6 @@ export function AerobicEditModal({ session, open, onOpenChange, extraInvalidateK
     setDurationMin(session.durationMin.toString());
     setDistanceKm(session.distanceKm?.toString() ?? '');
     setAvgHeartRate(session.avgHeartRate?.toString() ?? '');
-    setWeightKg(session.weightKg.toString());
     setMemo(session.memo ?? '');
     setShowDeleteConfirm(false);
   }, [open]); // eslint-disable-line react-hooks/exhaustive-deps
@@ -91,7 +141,7 @@ export function AerobicEditModal({ session, open, onOpenChange, extraInvalidateK
           intensity,
           distanceKm:   distanceKm   ? parseFloat(distanceKm)   : undefined,
           avgHeartRate: avgHeartRate ? parseInt(avgHeartRate, 10) : undefined,
-          weightKg:     parseFloat(weightKg),
+          weightKg:     session.weightKg,
           memo:         memo || undefined,
         }),
       });
@@ -122,8 +172,7 @@ export function AerobicEditModal({ session, open, onOpenChange, extraInvalidateK
   });
 
   const isValid =
-    durationMin !== '' && parseInt(durationMin, 10) >= 1 &&
-    weightKg    !== '' && parseFloat(weightKg)      > 0;
+    durationMin !== '' && parseInt(durationMin, 10) >= 1;
 
   if (!open) return null;
 
@@ -148,22 +197,7 @@ export function AerobicEditModal({ session, open, onOpenChange, extraInvalidateK
           {/* 活動種目 */}
           <div className="space-y-1.5">
             <Label>種目</Label>
-            <div className="flex rounded-lg border p-1 gap-1">
-              {ACTIVITY_TYPES.map((type) => (
-                <button
-                  key={type}
-                  type="button"
-                  onClick={() => setActivityType(type)}
-                  className={`flex-1 rounded-md py-1.5 text-sm font-medium transition-colors ${
-                    activityType === type
-                      ? 'bg-primary text-primary-foreground'
-                      : 'text-muted-foreground hover:text-foreground'
-                  }`}
-                >
-                  {ACTIVITY_TYPE_LABELS[type]}
-                </button>
-              ))}
-            </div>
+            <ActivityTypePicker value={activityType} onChange={setActivityType} />
           </div>
 
           {/* 強度 */}
@@ -202,7 +236,7 @@ export function AerobicEditModal({ session, open, onOpenChange, extraInvalidateK
           {/* 距離（ウォーキング・ランニングのみ） */}
           {(activityType === 'walking' || activityType === 'running') && (
             <div className="space-y-1.5">
-              <Label htmlFor="edit-distance">距離（km）— 任意</Label>
+              <Label htmlFor="edit-distance">距離（km）任意</Label>
               <Input
                 id="edit-distance"
                 inputMode="decimal"
@@ -215,24 +249,12 @@ export function AerobicEditModal({ session, open, onOpenChange, extraInvalidateK
 
           {/* 平均心拍数 */}
           <div className="space-y-1.5">
-            <Label htmlFor="edit-hr">平均心拍数（bpm）— 任意</Label>
+            <Label htmlFor="edit-hr">平均心拍数（bpm）任意</Label>
             <Input
               id="edit-hr"
               inputMode="numeric"
               value={avgHeartRate}
               onChange={(e) => setAvgHeartRate(e.target.value)}
-              className="h-11 text-base"
-            />
-          </div>
-
-          {/* 体重 */}
-          <div className="space-y-1.5">
-            <Label htmlFor="edit-weight">体重（kg）</Label>
-            <Input
-              id="edit-weight"
-              inputMode="decimal"
-              value={weightKg}
-              onChange={(e) => setWeightKg(e.target.value)}
               className="h-11 text-base"
             />
           </div>
@@ -258,15 +280,9 @@ export function AerobicEditModal({ session, open, onOpenChange, extraInvalidateK
               value={memo}
               onChange={(e) => setMemo(e.target.value)}
               maxLength={200}
-              rows={2}
+              rows={1}
               className="w-full rounded-lg border border-input bg-background px-3 py-2 text-base focus:outline-none focus:ring-2 focus:ring-ring"
             />
-          </div>
-
-          {/* 消費カロリー（参考表示） */}
-          <div className="rounded-lg bg-muted/50 px-4 py-3 text-sm text-muted-foreground">
-            記録時の消費カロリー：{Math.round(session.kcalBurned)} kcal
-            <span className="block text-xs mt-0.5">※ 保存時に再計算されます</span>
           </div>
 
           {/* アクションボタン */}
