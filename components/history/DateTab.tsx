@@ -7,7 +7,7 @@ import { SetInputModal } from '@/components/set/SetInputModal';
 import { AerobicEditModal, type AerobicSession } from '@/components/aerobic/AerobicEditModal';
 import { EmptyState } from '@/components/common/EmptyState';
 import { buildDateText, downloadTxt } from '@/lib/utils/export';
-import { formatAerobicRow } from '@/lib/utils/aerobic';
+import { ACTIVITY_TYPE_LABELS, INTENSITY_OPTIONS, type ActivityType } from '@/lib/validations/aerobic';
 
 // ─── 型 ───────────────────────────────────────────────
 
@@ -36,6 +36,7 @@ type ExerciseGroup = {
   exerciseId: string;
   exerciseName: string;
   exerciseCategory: string | null;
+  firstRecordedAt: string;
   sets: SetDetail[];
 };
 
@@ -48,6 +49,32 @@ function formatDate(dateStr: string) {
   return `${y}年${parseInt(m)}月${parseInt(d)}日（${weekdays[day]}）`;
 }
 
+// ─── 有酸素表示ヘルパー ────────────────────────────────
+
+function getIntensityLabel(activityType: string, intensity: string): string {
+  return (INTENSITY_OPTIONS[activityType as ActivityType] ?? [])
+    .find((o) => o.value === intensity)?.label ?? intensity;
+}
+
+function formatDuration(durationMin: number, distanceKm: number | null): string {
+  return distanceKm ? `${durationMin}分 / ${distanceKm}km` : `${durationMin}分`;
+}
+
+// ─── マージ済みアイテム型 ──────────────────────────────
+
+type MergedItem =
+  | { kind: 'exercise'; group: ExerciseGroup }
+  | { kind: 'aerobic';  session: AerobicSession };
+
+function mergeItems(groups: ExerciseGroup[], aerobicSessions: AerobicSession[]): MergedItem[] {
+  const items: (MergedItem & { sortKey: string })[] = [
+    ...groups.map((g) => ({ kind: 'exercise' as const, group: g, sortKey: g.firstRecordedAt })),
+    ...aerobicSessions.map((s) => ({ kind: 'aerobic' as const, session: s, sortKey: s.createdAt })),
+  ];
+  items.sort((a, b) => a.sortKey.localeCompare(b.sortKey));
+  return items;
+}
+
 // ─── 展開カード ────────────────────────────────────────
 
 type EditTarget = {
@@ -55,11 +82,7 @@ type EditTarget = {
   set: SetDetail & { exerciseId: string; exerciseName: string; workoutDate: string } | null;
 };
 
-type AerobicEditTarget = {
-  open: boolean;
-  session: AerobicSession | null;
-};
-
+type AerobicEditTarget = { open: boolean; session: AerobicSession | null };
 type DemographicData = { gender: string | null; heightCm: number | null; birthDate: string | null; activityLevel: string | null };
 type MotivationData  = { category: string | null; description: string | null };
 type BodyComposition = { measuredDate: string; weightKg: number; bodyFatPct: number | null; skeletalMuscleKg: number | null; bmr: number | null };
@@ -86,6 +109,7 @@ function DateCard({ date, summary }: TrainingDate) {
 
   const groups          = data?.data          ?? [];
   const aerobicSessions = aerobicData?.data   ?? [];
+  const mergedItems     = mergeItems(groups, aerobicSessions);
 
   const handleExport = async () => {
     const [bodyRes, demogRes, motivRes] = await Promise.all([
@@ -121,6 +145,7 @@ function DateCard({ date, summary }: TrainingDate) {
 
   return (
     <div className="overflow-hidden rounded-2xl border bg-card">
+      {/* ─── カードヘッダー（折りたたみトグル） */}
       <button
         type="button"
         onClick={() => setExpanded((v) => !v)}
@@ -156,6 +181,7 @@ function DateCard({ date, summary }: TrainingDate) {
         )}
       </button>
 
+      {/* ─── 展開コンテンツ */}
       {expanded && (
         <div className="border-t">
           {(isLoading || aerobicLoading) ? (
@@ -164,13 +190,16 @@ function DateCard({ date, summary }: TrainingDate) {
                 <div key={i} className="h-8 animate-pulse rounded-xl bg-muted" />
               ))}
             </div>
+          ) : mergedItems.length === 0 ? (
+            <p className="p-4 text-center text-sm text-muted-foreground">データがありません</p>
           ) : (
-            <>
-              {/* 筋トレセット */}
-              {groups.length > 0 && (
-                <div className="divide-y">
-                  {groups.map((group) => (
-                    <div key={group.exerciseId}>
+            <div className="divide-y">
+              {mergedItems.map((item, idx) => {
+                if (item.kind === 'exercise') {
+                  const group = item.group;
+                  return (
+                    <div key={`ex-${group.exerciseId}-${idx}`}>
+                      {/* 種目ヘッダー */}
                       <div className="flex items-center gap-2 bg-primary/5 px-4 py-2">
                         <span className="text-xs font-semibold">{group.exerciseName}</span>
                         {group.exerciseCategory && (
@@ -179,6 +208,7 @@ function DateCard({ date, summary }: TrainingDate) {
                           </span>
                         )}
                       </div>
+                      {/* セット行 */}
                       <div className="divide-y">
                         {group.sets.map((set) => (
                           <button
@@ -203,49 +233,50 @@ function DateCard({ date, summary }: TrainingDate) {
                         ))}
                       </div>
                     </div>
-                  ))}
-                </div>
-              )}
+                  );
+                }
 
-              {/* 有酸素セッション */}
-              {aerobicSessions.length > 0 && (
-                <div className={groups.length > 0 ? 'border-t' : ''}>
-                  <div className="flex items-center gap-2 bg-sky-500/5 px-4 py-2">
-                    <Wind size={12} className="text-sky-600" />
-                    <span className="text-xs font-semibold text-sky-700">有酸素</span>
+                // ─── 有酸素セッション（筋トレと同じレイアウト）
+                const session = item.session;
+                const activityLabel  = ACTIVITY_TYPE_LABELS[session.activityType as ActivityType] ?? session.activityType;
+                const intensityLabel = getIntensityLabel(session.activityType, session.intensity);
+                return (
+                  <div key={`aerobic-${session.id}`}>
+                    {/* 種目ヘッダー（筋トレと同形式） */}
+                    <div className="flex items-center gap-2 bg-sky-500/5 px-4 py-2">
+                      <span className="text-xs font-semibold">{activityLabel}</span>
+                      <span className="rounded-full bg-sky-500/15 px-1.5 py-0.5 text-[10px] text-sky-700 font-medium">
+                        有酸素
+                      </span>
+                    </div>
+                    {/* セット行（筋トレと同グリッド） */}
+                    <button
+                      type="button"
+                      onClick={() => setAerobicEditTarget({ open: true, session })}
+                      className="grid min-h-[44px] w-full grid-cols-[2rem_1fr_1fr_1fr] items-center gap-2 px-4 py-2 text-left hover:bg-muted/30 active:bg-muted/50 transition-colors"
+                    >
+                      <span className="text-xs text-muted-foreground">—</span>
+                      <span className="text-sm">{intensityLabel}</span>
+                      <span className="text-sm">{formatDuration(session.durationMin, session.distanceKm)}</span>
+                      <span className="text-sm text-muted-foreground">{Math.round(session.kcalBurned)} kcal</span>
+                    </button>
                   </div>
-                  <div className="divide-y">
-                    {aerobicSessions.map((session) => (
-                      <button
-                        key={session.id}
-                        type="button"
-                        onClick={() => setAerobicEditTarget({ open: true, session })}
-                        className="flex min-h-[44px] w-full items-center gap-2 px-4 py-2 text-left hover:bg-muted/30 active:bg-muted/50 transition-colors"
-                      >
-                        <span className="flex-1 text-sm">{formatAerobicRow(session)}</span>
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {groups.length === 0 && aerobicSessions.length === 0 && (
-                <p className="p-4 text-center text-sm text-muted-foreground">データがありません</p>
-              )}
-
-              {/* この日の記録を出力 */}
-              <div className="border-t px-4 py-3">
-                <button
-                  type="button"
-                  onClick={handleExport}
-                  className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors"
-                >
-                  <Download size={13} />
-                  この日の記録を出力
-                </button>
-              </div>
-            </>
+                );
+              })}
+            </div>
           )}
+
+          {/* この日の記録を出力 */}
+          <div className="border-t px-4 py-3">
+            <button
+              type="button"
+              onClick={handleExport}
+              className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors"
+            >
+              <Download size={13} />
+              この日の記録を出力
+            </button>
+          </div>
         </div>
       )}
 

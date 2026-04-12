@@ -21,6 +21,7 @@ export type AerobicSession = {
   weightKg: number;
   kcalBurned: number;
   memo: string | null;
+  createdAt: string;
 };
 
 type Props = {

@@ -35,6 +35,7 @@ export async function GET(_req: Request, { params }: Params) {
     exerciseId:       string;
     exerciseName:     string;
     exerciseCategory: string | null;
+    firstRecordedAt:  string;
     sets: {
       id:           string;
       setNumber:    number;
@@ -52,6 +53,7 @@ export async function GET(_req: Request, { params }: Params) {
         exerciseId:       row.exerciseId,
         exerciseName:     row.exerciseName,
         exerciseCategory: row.exerciseCategory,
+        firstRecordedAt:  row.recordedAt, // rows are sorted by recordedAt ASC
         sets: [],
       });
     }

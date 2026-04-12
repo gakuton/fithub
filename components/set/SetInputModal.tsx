@@ -295,12 +295,11 @@ export function SetInputModal({ mode, initialData, open, onOpenChange, extraInva
     onError: (e) => toast.error((e as Error).message),
   });
 
-  // ─── 有酸素 mutation
-  const effectiveWeight = latestWeightKg ?? (aerobicWeightKg ? parseFloat(aerobicWeightKg) : 0);
+  // ─── 有酸素 mutation（体重は体組成から取得、なければ65kgをデフォルト）
+  const effectiveWeight = latestWeightKg ?? 65;
   const isAerobicValid =
     aerobicDurationMin !== '' &&
-    parseInt(aerobicDurationMin, 10) >= 1 &&
-    effectiveWeight > 0;
+    parseInt(aerobicDurationMin, 10) >= 1;
 
   const aerobicCreateMutation = useMutation({
     mutationFn: async () => {
@@ -384,25 +383,19 @@ export function SetInputModal({ mode, initialData, open, onOpenChange, extraInva
           {/* ─── 有酸素フォーム ─── */}
           {mode === 'create' && inputCategory === 'aerobic' && (
             <>
-              {/* 活動種目 */}
+              {/* 活動種目（プルダウン） */}
               <div className="space-y-1.5">
-                <Label>種目</Label>
-                <div className="flex rounded-lg border p-1 gap-1">
+                <Label htmlFor="aerobic-type">種目</Label>
+                <select
+                  id="aerobic-type"
+                  value={aerobicActivityType}
+                  onChange={(e) => setAerobicActivityType(e.target.value as ActivityType)}
+                  className="h-11 w-full rounded-lg border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+                >
                   {ACTIVITY_TYPES.map((type) => (
-                    <button
-                      key={type}
-                      type="button"
-                      onClick={() => setAerobicActivityType(type)}
-                      className={`flex-1 rounded-md py-1.5 text-sm font-medium transition-colors ${
-                        aerobicActivityType === type
-                          ? 'bg-primary text-primary-foreground'
-                          : 'text-muted-foreground hover:text-foreground'
-                      }`}
-                    >
-                      {ACTIVITY_TYPE_LABELS[type]}
-                    </button>
+                    <option key={type} value={type}>{ACTIVITY_TYPE_LABELS[type]}</option>
                   ))}
-                </div>
+                </select>
               </div>
 
               {/* 強度 */}
@@ -442,7 +435,7 @@ export function SetInputModal({ mode, initialData, open, onOpenChange, extraInva
               {/* 距離（ウォーキング・ランニングのみ） */}
               {(aerobicActivityType === 'walking' || aerobicActivityType === 'running') && (
                 <div className="space-y-1.5">
-                  <Label htmlFor="aerobic-distance">距離（km）— 任意</Label>
+                  <Label htmlFor="aerobic-distance">距離（km）任意</Label>
                   <Input
                     id="aerobic-distance"
                     inputMode="decimal"
@@ -456,7 +449,7 @@ export function SetInputModal({ mode, initialData, open, onOpenChange, extraInva
 
               {/* 平均心拍数 */}
               <div className="space-y-1.5">
-                <Label htmlFor="aerobic-hr">平均心拍数（bpm）— 任意</Label>
+                <Label htmlFor="aerobic-hr">平均心拍数（bpm）任意</Label>
                 <Input
                   id="aerobic-hr"
                   inputMode="numeric"
@@ -466,25 +459,6 @@ export function SetInputModal({ mode, initialData, open, onOpenChange, extraInva
                   placeholder="130"
                 />
               </div>
-
-              {/* 体重（最新体組成がある場合は非表示） */}
-              {latestWeightKg !== null ? (
-                <div className="rounded-lg bg-muted/50 px-4 py-3 text-sm text-muted-foreground">
-                  体重：{latestWeightKg}kg（最新の体組成から自動設定）
-                </div>
-              ) : (
-                <div className="space-y-1.5">
-                  <Label htmlFor="aerobic-weight">体重（kg）</Label>
-                  <Input
-                    id="aerobic-weight"
-                    inputMode="decimal"
-                    value={aerobicWeightKg}
-                    onChange={(e) => setAerobicWeightKg(e.target.value)}
-                    className="h-11 text-base"
-                    placeholder="70"
-                  />
-                </div>
-              )}
 
               {/* 日付 */}
               <div className="space-y-1.5">
@@ -507,7 +481,7 @@ export function SetInputModal({ mode, initialData, open, onOpenChange, extraInva
                   value={aerobicMemo}
                   onChange={(e) => setAerobicMemo(e.target.value)}
                   maxLength={200}
-                  rows={2}
+                  rows={1}
                   className="w-full rounded-lg border border-input bg-background px-3 py-2 text-base focus:outline-none focus:ring-2 focus:ring-ring"
                 />
               </div>
