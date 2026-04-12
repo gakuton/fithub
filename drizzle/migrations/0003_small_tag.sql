@@ -1,0 +1,1 @@
+ALTER TABLE `body_compositions` ADD `bmr` real;

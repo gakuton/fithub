@@ -76,6 +76,7 @@ export const bodyCompositions = sqliteTable('body_compositions', {
   weightKg:          real('weight_kg').notNull(),
   bodyFatPct:        real('body_fat_pct'),
   skeletalMuscleKg:  real('skeletal_muscle_kg'),
+  bmr:               real('bmr'),
   extraData:         text('extra_data'),
   createdAt:         text('created_at').notNull().default(sql`(datetime('now'))`),
   updatedAt:         text('updated_at').notNull().default(sql`(datetime('now'))`),

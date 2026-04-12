@@ -7,6 +7,7 @@ export const bodyCompositionSchema = z.object({
   weightKg:         z.number().positive(),
   bodyFatPct:       z.number().min(0).max(100).optional(),
   skeletalMuscleKg: z.number().positive().optional(),
+  bmr:              z.number().positive().optional(),
 });
 
 export type BodyCompositionInput = z.infer<typeof bodyCompositionSchema>;
