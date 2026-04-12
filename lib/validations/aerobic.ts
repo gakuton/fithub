@@ -9,14 +9,14 @@ export const ACTIVITY_TYPE_LABELS: Record<ActivityType, string> = {
   tennis:  'テニス',
 };
 
-export const INTENSITY_OPTIONS: Record<ActivityType, { value: string; label: string }[]> = {
+export const INTENSITY_OPTIONS: Record<ActivityType, { value: string; label: string; hint?: string }[]> = {
   walking: [
-    { value: 'moderate', label: '普通' },
-    { value: 'brisk',    label: '速歩' },
+    { value: 'moderate', label: '普通',     hint: '〜4km/h' },
+    { value: 'brisk',    label: '速歩',     hint: '〜6km/h' },
   ],
   running: [
-    { value: 'slow',     label: 'ゆっくり' },
-    { value: 'moderate', label: '普通' },
+    { value: 'slow',     label: 'ゆっくり', hint: '8km/h' },
+    { value: 'moderate', label: '普通',     hint: '10km/h' },
   ],
   tennis: [
     { value: 'doubles',  label: 'ダブルス' },

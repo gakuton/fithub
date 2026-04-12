@@ -215,7 +215,8 @@ export function AerobicEditModal({ session, open, onOpenChange, extraInvalidateK
                       : 'hover:bg-muted/50'
                   }`}
                 >
-                  {opt.label}
+                  <span className="block">{opt.label}</span>
+                  {opt.hint && <span className="block text-[10px] text-muted-foreground">{opt.hint}</span>}
                 </button>
               ))}
             </div>
@@ -238,7 +239,7 @@ export function AerobicEditModal({ session, open, onOpenChange, extraInvalidateK
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-1.5">
                 <Label htmlFor="edit-distance">
-                  距離（km）<span className="ml-1 rounded-full bg-muted px-1.5 py-0.5 text-[10px] font-medium">任意</span>
+                  距離（km）<span className="ml-0.5 rounded-full bg-muted px-1.5 py-0.5 text-[10px] font-medium">任意</span>
                 </Label>
                 <Input
                   id="edit-distance"
@@ -250,7 +251,7 @@ export function AerobicEditModal({ session, open, onOpenChange, extraInvalidateK
               </div>
               <div className="space-y-1.5">
                 <Label htmlFor="edit-hr">
-                  心拍数（bpm）<span className="ml-1 rounded-full bg-muted px-1.5 py-0.5 text-[10px] font-medium">任意</span>
+                  心拍数（bpm）<span className="ml-0.5 rounded-full bg-muted px-1.5 py-0.5 text-[10px] font-medium">任意</span>
                 </Label>
                 <Input
                   id="edit-hr"
@@ -264,7 +265,7 @@ export function AerobicEditModal({ session, open, onOpenChange, extraInvalidateK
           ) : (
             <div className="space-y-1.5">
               <Label htmlFor="edit-hr">
-                平均心拍数（bpm）<span className="ml-1 rounded-full bg-muted px-1.5 py-0.5 text-[10px] font-medium">任意</span>
+                平均心拍数（bpm）<span className="ml-0.5 rounded-full bg-muted px-1.5 py-0.5 text-[10px] font-medium">任意</span>
               </Label>
               <Input
                 id="edit-hr"
@@ -292,7 +293,7 @@ export function AerobicEditModal({ session, open, onOpenChange, extraInvalidateK
           {/* メモ */}
           <div className="space-y-1.5">
             <Label htmlFor="edit-memo">
-              メモ<span className="ml-1 rounded-full bg-muted px-1.5 py-0.5 text-[10px] font-medium">任意</span>
+              メモ<span className="ml-0.5 rounded-full bg-muted px-1.5 py-0.5 text-[10px] font-medium">任意</span>
             </Label>
             <textarea
               id="edit-memo"
