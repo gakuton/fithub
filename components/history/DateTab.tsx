@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { ChevronDown, ChevronUp, Dumbbell, MessageSquare, AlertCircle, Download, Wind } from 'lucide-react';
+import { ChevronDown, ChevronUp, ChevronLeft, ChevronRight, Dumbbell, MessageSquare, AlertCircle, Download, Wind } from 'lucide-react';
 import { SetInputModal } from '@/components/set/SetInputModal';
 import { AerobicEditModal, type AerobicSession } from '@/components/aerobic/AerobicEditModal';
 import { EmptyState } from '@/components/common/EmptyState';
@@ -316,43 +316,64 @@ function DateCard({ date, summary }: TrainingDate) {
 // ─── メインコンポーネント ──────────────────────────────
 
 export function DateTab() {
+  const [monthOffset, setMonthOffset] = useState(0);
+
+  const today = new Date();
+  const target = new Date(today.getFullYear(), today.getMonth() + monthOffset, 1);
+  const year  = target.getFullYear();
+  const month = target.getMonth() + 1;
+  const isCurrentMonth = monthOffset === 0;
+
   const { data, isLoading, isError } = useQuery<{ data: TrainingDate[] }>({
-    queryKey: ['sets', 'training-dates'],
-    queryFn: () => fetch('/api/sets/training-dates').then((r) => r.json()),
+    queryKey: ['sets', 'training-dates', year, month],
+    queryFn: () => fetch(`/api/sets/training-dates?year=${year}&month=${month}`).then((r) => r.json()),
     staleTime: 0,
   });
 
   const dates = data?.data ?? [];
 
-  if (isLoading) {
-    return (
-      <div className="space-y-3">
-        {[...Array(3)].map((_, i) => (
-          <div key={i} className="h-16 animate-pulse rounded-2xl border bg-card" />
-        ))}
-      </div>
-    );
-  }
-
-  if (isError) {
-    return <EmptyState icon={AlertCircle} message="データの取得に失敗しました" />;
-  }
-
-  if (dates.length === 0) {
-    return (
-      <EmptyState
-        icon={Dumbbell}
-        message="トレーニング記録がありません"
-        sub="ホーム画面からセットを追加しましょう"
-      />
-    );
-  }
-
   return (
     <div className="space-y-3">
-      {dates.map((item) => (
-        <DateCard key={item.date} {...item} />
-      ))}
+      {/* 月ナビゲーション */}
+      <div className="flex items-center justify-between rounded-2xl border bg-card px-4 py-3">
+        <button
+          type="button"
+          onClick={() => setMonthOffset((o) => o - 1)}
+          className="flex h-8 w-8 items-center justify-center rounded-full hover:bg-muted active:bg-muted/70 transition-colors"
+          aria-label="前の月"
+        >
+          <ChevronLeft size={18} />
+        </button>
+        <span className="text-sm font-medium">{year}年{month}月</span>
+        <button
+          type="button"
+          onClick={() => setMonthOffset((o) => o + 1)}
+          disabled={isCurrentMonth}
+          className="flex h-8 w-8 items-center justify-center rounded-full hover:bg-muted active:bg-muted/70 transition-colors disabled:pointer-events-none disabled:opacity-30"
+          aria-label="次の月"
+        >
+          <ChevronRight size={18} />
+        </button>
+      </div>
+
+      {/* コンテンツ */}
+      {isLoading ? (
+        [...Array(3)].map((_, i) => (
+          <div key={i} className="h-16 animate-pulse rounded-2xl border bg-card" />
+        ))
+      ) : isError ? (
+        <EmptyState icon={AlertCircle} message="データの取得に失敗しました" />
+      ) : dates.length === 0 ? (
+        <EmptyState
+          icon={Dumbbell}
+          message="この月のトレーニング記録はありません"
+          sub={isCurrentMonth ? 'ホーム画面からセットを追加しましょう' : undefined}
+        />
+      ) : (
+        dates.map((item) => (
+          <DateCard key={item.date} {...item} />
+        ))
+      )}
     </div>
   );
 }

@@ -1,9 +1,19 @@
 import { NextResponse } from 'next/server';
-import { desc, sql } from 'drizzle-orm';
+import { sql } from 'drizzle-orm';
 import { db } from '@/lib/db';
 import { workoutSets, aerobicSessions } from '@/lib/db/schema';
 
-export async function GET() {
+export async function GET(req: Request) {
+  const { searchParams } = new URL(req.url);
+  const yearParam  = searchParams.get('year');
+  const monthParam = searchParams.get('month');
+
+  const now = new Date();
+  const year  = yearParam  ? parseInt(yearParam,  10) : now.getFullYear();
+  const month = monthParam ? parseInt(monthParam, 10) : now.getMonth() + 1;
+
+  const monthPrefix = `${year}-${String(month).padStart(2, '0')}-%`;
+
   // 筋トレ日付＋サマリー
   const setRows = await db
     .select({
@@ -14,6 +24,7 @@ export async function GET() {
       maxEstimated1rm: sql<number | null>`MAX(${workoutSets.estimated1rm})`,
     })
     .from(workoutSets)
+    .where(sql`${workoutSets.workoutDate} LIKE ${monthPrefix}`)
     .groupBy(workoutSets.workoutDate);
 
   // 有酸素セッション日付＋件数
@@ -23,6 +34,7 @@ export async function GET() {
       count: sql<number>`COUNT(*)`,
     })
     .from(aerobicSessions)
+    .where(sql`${aerobicSessions.sessionDate} LIKE ${monthPrefix}`)
     .groupBy(aerobicSessions.sessionDate);
 
   // 全日付を UNION してソート
