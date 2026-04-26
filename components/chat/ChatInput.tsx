@@ -1,7 +1,7 @@
 'use client'
 
 import { useRef, useEffect } from 'react'
-import { ArrowUp } from 'lucide-react'
+import { Send } from 'lucide-react'
 
 interface Props {
   value: string
@@ -17,7 +17,7 @@ export function ChatInput({ value, onChange, onSubmit, disabled }: Props) {
     const el = textareaRef.current
     if (!el) return
     el.style.height = 'auto'
-    el.style.height = `${Math.min(el.scrollHeight, 160)}px`
+    el.style.height = `${Math.min(el.scrollHeight, 120)}px`
   }, [value])
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -27,8 +27,16 @@ export function ChatInput({ value, onChange, onSubmit, disabled }: Props) {
     }
   }
 
+  const canSend = !disabled && value.trim().length > 0
+
   return (
-    <div className="flex items-end gap-2 rounded-2xl border border-border bg-card px-3 py-2 shadow-sm">
+    <div
+      className="flex items-end gap-2 px-[6px] py-[6px]"
+      style={{
+        background: 'var(--muted)',
+        borderRadius: 22,
+      }}
+    >
       <textarea
         ref={textareaRef}
         rows={1}
@@ -36,16 +44,22 @@ export function ChatInput({ value, onChange, onSubmit, disabled }: Props) {
         onChange={(e) => onChange(e.target.value)}
         onKeyDown={handleKeyDown}
         disabled={disabled}
-        placeholder="メッセージを入力…"
-        className="flex-1 resize-none bg-transparent text-sm outline-none placeholder:text-muted-foreground disabled:opacity-50"
+        placeholder="質問やリクエストを入力..."
+        className="flex-1 resize-none bg-transparent py-2 pl-[10px] text-sm leading-[1.4] outline-none placeholder:text-muted-foreground disabled:opacity-50"
+        style={{ minHeight: 22, maxHeight: 120 }}
       />
       <button
         onClick={onSubmit}
-        disabled={disabled || !value.trim()}
-        className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-xl bg-primary text-primary-foreground transition-opacity disabled:opacity-30"
+        disabled={!canSend}
         aria-label="送信"
+        className="mb-[1px] flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full text-primary-foreground transition-all active:translate-y-px"
+        style={{
+          background: canSend
+            ? 'var(--primary)'
+            : 'oklch(0.585 0.233 277.117 / 0.30)',
+        }}
       >
-        <ArrowUp size={16} strokeWidth={2} />
+        <Send size={16} strokeWidth={2.2} />
       </button>
     </div>
   )
