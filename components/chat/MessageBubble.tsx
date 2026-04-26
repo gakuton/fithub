@@ -1,6 +1,8 @@
 'use client'
 
 import { Sparkles, AlertTriangle, RefreshCw } from 'lucide-react'
+import ReactMarkdown from 'react-markdown'
+import remarkGfm from 'remark-gfm'
 
 interface Props {
   role: 'user' | 'assistant'
@@ -50,6 +52,53 @@ function ErrorAvatar({ size = 28 }: { size?: number }) {
     >
       <AlertTriangle size={iconSize} strokeWidth={2.2} className="text-destructive" />
     </div>
+  )
+}
+
+// Markdown renderer for assistant messages
+function MarkdownContent({ content }: { content: string }) {
+  return (
+    <ReactMarkdown
+      remarkPlugins={[remarkGfm]}
+      components={{
+        // Headings
+        h1: ({ children }) => <p className="text-[15px] font-bold mt-3 mb-1 first:mt-0">{children}</p>,
+        h2: ({ children }) => <p className="text-[14px] font-bold mt-3 mb-1 first:mt-0">{children}</p>,
+        h3: ({ children }) => <p className="text-[13px] font-semibold mt-2 mb-0.5 first:mt-0">{children}</p>,
+        // Paragraphs
+        p: ({ children }) => <p className="mb-2 last:mb-0 leading-[1.6]">{children}</p>,
+        // Bold / Italic
+        strong: ({ children }) => <strong className="font-semibold">{children}</strong>,
+        em: ({ children }) => <em className="italic">{children}</em>,
+        // Lists
+        ul: ({ children }) => <ul className="mb-2 last:mb-0 ml-4 list-disc space-y-0.5">{children}</ul>,
+        ol: ({ children }) => <ol className="mb-2 last:mb-0 ml-4 list-decimal space-y-0.5">{children}</ol>,
+        li: ({ children }) => <li className="leading-[1.6]">{children}</li>,
+        // Horizontal rule
+        hr: () => <hr className="my-2 border-border" />,
+        // Inline code
+        code: ({ children }) => (
+          <code className="rounded bg-muted px-1 py-0.5 text-[12px] font-mono">{children}</code>
+        ),
+        // Tables (remark-gfm)
+        table: ({ children }) => (
+          <div className="my-2 w-full overflow-x-auto">
+            <table className="w-full border-collapse text-[13px]">{children}</table>
+          </div>
+        ),
+        thead: ({ children }) => <thead className="bg-muted/60">{children}</thead>,
+        tbody: ({ children }) => <tbody>{children}</tbody>,
+        tr: ({ children }) => <tr className="border-b border-border last:border-0">{children}</tr>,
+        th: ({ children }) => (
+          <th className="px-3 py-2 text-left font-semibold text-foreground">{children}</th>
+        ),
+        td: ({ children }) => (
+          <td className="px-3 py-2 text-foreground">{children}</td>
+        ),
+      }}
+    >
+      {content}
+    </ReactMarkdown>
   )
 }
 
@@ -108,12 +157,12 @@ export function MessageBubble({ role, content, time, isError, isStreaming, onRet
       <TrainerAvatar size={28} />
       <div className="flex flex-col gap-1 max-w-[86%]">
         <div
-          className="bg-card border border-border text-foreground text-sm leading-[1.55] px-[14px] py-[10px] whitespace-pre-wrap break-words"
+          className="bg-card border border-border text-foreground text-sm px-[14px] py-[10px]"
           style={{ borderRadius: '18px 18px 18px 6px' }}
         >
-          {content}
+          <MarkdownContent content={content} />
           {isStreaming && (
-            <span className="ml-1 inline-block h-[14px] w-0.5 animate-pulse bg-current opacity-60 align-middle" />
+            <span className="ml-0.5 inline-block h-[14px] w-0.5 animate-pulse bg-foreground opacity-60 align-middle" />
           )}
         </div>
         <span className="text-[10px] text-muted-foreground tabular-nums ml-1">{time}</span>
