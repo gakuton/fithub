@@ -11,6 +11,22 @@
 - Phase4 設計ドキュメント: ../Phase4/設計ドキュメント.md（マルチユーザー認証 — **実装待ち**）
 - Phase6 要求定義書: ./docs/Phase6/要求定義書.md（AIパーソナルトレーナーチャット — **要求定義完了・設計待ち**）
 
+## デザインシステム
+- 概要・ルール: `./docs/design-system/README.md`
+- CSSトークン（色・タイポ・スペーシング）: `./docs/design-system/colors_and_type.css`
+
+### デザイン原則（要約）
+- **ブランドカラー**: hue 277（indigo→violet）。`--primary: oklch(0.585 0.233 277.117)` ≈ `#6366f1`
+- **ニュートラル**: グレーを使わない。全てhue 277の彩度を落としたもの
+- **セマンティック色**: 体脂肪率→`text-orange-500`、骨格筋→`text-green-500`、有酸素→`sky-500`
+- **フォント**: Geist（日本語フォールバック: Hiragino Sans → Noto Sans JP）
+- **カード角丸**: `rounded-2xl`（21.6px）。ボタン・入力: `rounded-lg` / `rounded-xl`
+- **シャドウ**: `shadow-sm` のみ、最小限に
+- **アイコン**: `lucide-react` のみ。stroke 1.8デフォルト、アクティブ時 2.5
+- **絵文字・画像・グラデーション**: 使用禁止（ロゴのみ例外）
+- **コピーライティング**: 日本語のみ。感嘆符なし、二人称なし、静かで宣言的なトーン
+- **モバイルファースト**: `max-w-lg`（32rem）上限、タップ領域44px以上、`pb-20`でBottomNav分を確保
+
 ## 技術スタック
 Next.js 16 / TypeScript / Tailwind CSS / shadcn/ui / Drizzle ORM / SQLite(Turso) / TanStack Query v5 / Recharts / Zod
 
