@@ -45,8 +45,8 @@ export function ChatInput({ value, onChange, onSubmit, disabled }: Props) {
         onKeyDown={handleKeyDown}
         disabled={disabled}
         placeholder="質問やリクエストを入力..."
-        className="flex-1 resize-none bg-transparent py-2 pl-[10px] text-sm leading-[1.4] outline-none placeholder:text-muted-foreground disabled:opacity-50"
-        style={{ minHeight: 22, maxHeight: 120 }}
+        className="flex-1 resize-none bg-transparent py-2 pl-[10px] text-base leading-[1.4] outline-none placeholder:text-muted-foreground disabled:opacity-50"
+        style={{ minHeight: 22, maxHeight: 120, fontSize: 16 }}
       />
       <button
         onClick={onSubmit}
