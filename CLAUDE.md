@@ -11,6 +11,8 @@
 - Phase4 設計ドキュメント: ../Phase4/設計ドキュメント.md（マルチユーザー認証 — **実装待ち**）
 - Phase6 要求定義書: ./docs/Phase6/要求定義書.md（AIパーソナルトレーナーチャット — **要求定義完了・設計待ち**）
 
+=======
+
 ## デザインシステム
 - 概要・ルール: `./docs/design-system/README.md`
 - CSSトークン（色・タイポ・スペーシング）: `./docs/design-system/colors_and_type.css`
