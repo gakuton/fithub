@@ -1,0 +1,164 @@
+/* FitHub Design System — Colors & Type
+ * Sourced from app/globals.css (Tailwind v4 theme + shadcn tokens).
+ * All colors in oklch; hue 277 (indigo–violet) is the brand spine.
+ */
+
+@import url('https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600;700;800;900&family=Geist+Mono:wght@400;500;600&display=swap');
+
+:root {
+  /* ── Brand colors (light) ───────────────────────────────────── */
+  --background:          oklch(0.985 0.006 277);
+  --foreground:          oklch(0.2   0.02  277);
+  --card:                oklch(1     0     0);
+  --card-foreground:     oklch(0.2   0.02  277);
+  --popover:             oklch(1     0     0);
+  --popover-foreground:  oklch(0.2   0.02  277);
+
+  --primary:             oklch(0.585 0.233 277.117); /* indigo-violet — #6366f1 family */
+  --primary-foreground:  oklch(1     0     0);
+  --primary-soft:        oklch(0.585 0.233 277.117 / 0.10);   /* bg-primary/10 */
+  --primary-softer:      oklch(0.585 0.233 277.117 / 0.05);   /* bg-primary/5 */
+
+  --secondary:           oklch(0.945 0.025 277);
+  --secondary-foreground:oklch(0.4   0.08  277);
+  --muted:               oklch(0.955 0.015 277);
+  --muted-foreground:    oklch(0.52  0.04  277);
+  --accent:              oklch(0.945 0.025 277);
+  --accent-foreground:   oklch(0.4   0.08  277);
+
+  --destructive:         oklch(0.577 0.245 27.325);
+  --border:              oklch(0.905 0.018 277);
+  --input:               oklch(0.905 0.018 277);
+  --ring:                oklch(0.585 0.233 277.117);
+
+  /* Chart palette (used for body, kcal/PFC, etc.) */
+  --chart-1: oklch(0.585 0.233 277.117); /* indigo */
+  --chart-2: oklch(0.72  0.18  200);     /* cyan / aerobic */
+  --chart-3: oklch(0.75  0.19  155);     /* green / protein */
+  --chart-4: oklch(0.78  0.18  60);      /* amber / fat */
+  --chart-5: oklch(0.68  0.22  30);      /* orange-red / carb */
+
+  /* ── Brand gradient (logo) ──────────────────────────────────── */
+  --brand-gradient-start: #6366f1;
+  --brand-gradient-end:   #8b5cf6;
+  --brand-gradient: linear-gradient(135deg, #6366f1, #8b5cf6);
+
+  /* ── Radii ──────────────────────────────────────────────────── */
+  --radius:    0.75rem;             /* 12px */
+  --radius-sm: calc(var(--radius) * 0.6);    /* 7.2 */
+  --radius-md: calc(var(--radius) * 0.8);    /* 9.6 */
+  --radius-lg: var(--radius);                /* 12  */
+  --radius-xl: calc(var(--radius) * 1.4);    /* 16.8 */
+  --radius-2xl: calc(var(--radius) * 1.8);   /* 21.6 */
+  --radius-3xl: calc(var(--radius) * 2.2);   /* 26.4 */
+  --radius-4xl: calc(var(--radius) * 2.6);   /* 31.2 */
+  --radius-full: 9999px;
+
+  /* ── Spacing (Tailwind 0.25rem unit) ───────────────────────── */
+  --space-1: 0.25rem;  --space-2: 0.5rem;  --space-3: 0.75rem;
+  --space-4: 1rem;     --space-5: 1.25rem; --space-6: 1.5rem;
+  --space-8: 2rem;     --space-10: 2.5rem; --space-12: 3rem;
+
+  /* ── Shadows (Tailwind defaults; kept restrained) ──────────── */
+  --shadow-xs: 0 1px 2px 0 oklch(0 0 0 / 0.05);
+  --shadow-sm: 0 1px 3px 0 oklch(0 0 0 / 0.07), 0 1px 2px -1px oklch(0 0 0 / 0.07);
+  --shadow-md: 0 4px 6px -1px oklch(0 0 0 / 0.08), 0 2px 4px -2px oklch(0 0 0 / 0.07);
+  --shadow-lg: 0 10px 15px -3px oklch(0 0 0 / 0.08), 0 4px 6px -4px oklch(0 0 0 / 0.05);
+  --ring-shadow: 0 0 0 3px oklch(0.585 0.233 277.117 / 0.5);
+
+  /* ── Type families ─────────────────────────────────────────── */
+  --font-sans: "Geist", "Geist Fallback", ui-sans-serif, system-ui, -apple-system,
+               "Hiragino Sans", "Hiragino Kaku Gothic ProN",
+               "Yu Gothic UI", "Yu Gothic", "Noto Sans JP", sans-serif;
+  --font-mono: "Geist Mono", "Geist Mono Fallback", ui-monospace, monospace;
+  --font-heading: var(--font-sans);
+
+  /* ── Type scale (mobile-first; default body 14–16) ─────────── */
+  --text-xs:  0.75rem;    /* 12 — labels, helper */
+  --text-sm:  0.875rem;   /* 14 — body, list rows */
+  --text-base:1rem;       /* 16 — input text on small screens */
+  --text-lg:  1.125rem;   /* 18 */
+  --text-xl:  1.25rem;    /* 20 */
+  --text-2xl: 1.5rem;     /* 24 — page titles */
+  --text-3xl: 1.875rem;   /* 30 */
+  --text-4xl: 2.25rem;    /* 36 */
+
+  --leading-tight: 1.15;
+  --leading-snug:  1.35;
+  --leading-normal:1.5;
+  --leading-loose: 1.7;
+
+  --tracking-tight:  -0.02em;  /* page titles use tracking-tight */
+  --tracking-normal: 0;
+
+  /* ── Hit target ────────────────────────────────────────────── */
+  --tap-min: 44px;   /* mobile-first rule from CLAUDE.md */
+}
+
+.dark {
+  --background:          oklch(0.16  0.02  277);
+  --foreground:          oklch(0.96  0.006 277);
+  --card:                oklch(0.22  0.025 277);
+  --card-foreground:     oklch(0.96  0.006 277);
+  --popover:             oklch(0.22  0.025 277);
+  --popover-foreground:  oklch(0.96  0.006 277);
+  --primary:             oklch(0.68  0.2   277.117);
+  --primary-foreground:  oklch(0.16  0.02  277);
+  --secondary:           oklch(0.28  0.04  277);
+  --secondary-foreground:oklch(0.96  0.006 277);
+  --muted:               oklch(0.28  0.04  277);
+  --muted-foreground:    oklch(0.65  0.04  277);
+  --accent:              oklch(0.28  0.04  277);
+  --accent-foreground:   oklch(0.96  0.006 277);
+  --destructive:         oklch(0.704 0.191 22.216);
+  --border:              oklch(1 0 0 / 0.10);
+  --input:               oklch(1 0 0 / 0.15);
+  --ring:                oklch(0.68  0.2   277.117);
+}
+
+/* ── Semantic typography utilities ───────────────────────────── */
+html, body {
+  font-family: var(--font-sans);
+  color: var(--foreground);
+  background: var(--background);
+  -webkit-font-smoothing: antialiased;
+}
+
+.h1, h1.ds-h1 {
+  font-family: var(--font-heading);
+  font-size: var(--text-2xl);
+  font-weight: 700;
+  letter-spacing: var(--tracking-tight);
+  line-height: var(--leading-tight);
+}
+.h2, h2.ds-h2 {
+  font-size: var(--text-lg);
+  font-weight: 600;
+  letter-spacing: var(--tracking-tight);
+}
+.h3, h3.ds-h3 {
+  font-size: var(--text-base);
+  font-weight: 600;
+}
+.label-section { /* small uppercase-ish muted section labels */
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: var(--muted-foreground);
+}
+.label-meta {
+  font-size: var(--text-xs);
+  color: var(--muted-foreground);
+}
+.body { font-size: var(--text-sm); line-height: var(--leading-normal); }
+.body-lg { font-size: var(--text-base); line-height: var(--leading-normal); }
+.numeric { font-variant-numeric: tabular-nums; }
+.mono, code { font-family: var(--font-mono); }
+
+/* Reusable surfaces */
+.card {
+  background: var(--card);
+  color: var(--card-foreground);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+}
+.card-lg { border-radius: var(--radius-2xl); }
