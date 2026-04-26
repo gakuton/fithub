@@ -9,6 +9,7 @@
 - Phase3 設計ドキュメント: ../Phase3/設計ドキュメント.md
 - Phase3.1 設計ドキュメント: ../Phase3.1/設計ドキュメント.md（体組成テーブル拡張 — **実装待ち**）
 - Phase4 設計ドキュメント: ../Phase4/設計ドキュメント.md（マルチユーザー認証 — **実装待ち**）
+- Phase6 要求定義書: ./docs/Phase6/要求定義書.md（AIパーソナルトレーナーチャット — **要求定義完了・設計待ち**）
 
 ## 技術スタック
 Next.js 16 / TypeScript / Tailwind CSS / shadcn/ui / Drizzle ORM / SQLite(Turso) / TanStack Query v5 / Recharts / Zod
@@ -39,6 +40,13 @@ Next.js 16 / TypeScript / Tailwind CSS / shadcn/ui / Drizzle ORM / SQLite(Turso)
 - ホーム画面右上にプロフィールへのリンクアイコン追加
 
 ## 実装予定
+
+### Phase6（AIパーソナルトレーナーチャット）— 要求定義完了
+- アプリ内AIチャット（`/chat`）。BottomNavに5番目タブ「AI」を追加
+- 直近30日（デフォルト）のトレーニング・食事・体組成・目標を自動コンテキストとしてClaude APIへ送信
+- ユーザーの質問内の期間キーワード（「半年」「今週」等）を解析し参照期間を動的決定
+- 会話履歴はlocalStorageに当日分を保持（翌日リセット）
+- 要求定義書: `./docs/Phase6/要求定義書.md`
 
 ### Phase3.1（体組成テーブル拡張）— Issue #3
 - `body_compositions` に `bmr`（基礎代謝・kcal）と `visceral_fat_index`（内臓脂肪指数）を追加
