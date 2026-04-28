@@ -6,7 +6,7 @@ export const chatMessageSchema = z.object({
 })
 
 export const chatRequestSchema = z.object({
-  messages: z.array(chatMessageSchema).min(1).max(10),
+  messages: z.array(chatMessageSchema).min(1).max(30),
 })
 
 export type ChatMessage = z.infer<typeof chatMessageSchema>
