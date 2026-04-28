@@ -73,7 +73,7 @@ function TypingBubble() {
   )
 }
 
-const MAX_HISTORY = 10
+const MAX_HISTORY = 30
 
 export function ChatInterface() {
   const [messages, setMessages] = useState<UIMessage[]>([])
