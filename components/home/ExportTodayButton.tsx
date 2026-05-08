@@ -90,9 +90,9 @@ export function ExportTodayButton() {
     ]);
 
     const profile = {
-      body:       bodyRes?.data  ?? null,
-      demog:      demogRes?.data ?? null,
-      motivation: motivRes?.data?.[0] ?? null,
+      body:        bodyRes?.data  ?? null,
+      demog:       demogRes?.data ?? null,
+      motivations: motivRes?.data ?? [],
     };
 
     const text = buildTodayText(groups, today, aerobicSessions, mealGroups, mealTotal, profile);
