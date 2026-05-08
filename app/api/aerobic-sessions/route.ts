@@ -33,7 +33,7 @@ export async function POST(req: Request) {
 
   const { activityType, sessionDate, durationMin, intensity, distanceKm, avgHeartRate, weightKg, memo } = parsed.data;
 
-  const [demo] = await db.select().from(demographicData).where(eq(demographicData.id, 'default'));
+  const [demo] = await db.select().from(demographicData).where(eq(demographicData.userId, ''));
 
   const kcalBurned = calcKcalBurned({
     activityType,

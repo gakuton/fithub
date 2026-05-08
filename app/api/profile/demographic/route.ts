@@ -20,14 +20,14 @@ export async function PUT(req: Request) {
   const [row] = await db
     .insert(demographicData)
     .values({
-      id:            'default',
+      userId:        '',
       gender:        gender ?? null,
       heightCm:      height_cm ?? null,
       birthDate:     birth_date ?? null,
       activityLevel: activity_level ?? null,
     })
     .onConflictDoUpdate({
-      target: demographicData.id,
+      target: demographicData.userId,
       set: {
         gender:        gender ?? null,
         heightCm:      height_cm ?? null,
