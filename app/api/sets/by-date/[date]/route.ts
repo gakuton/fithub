@@ -1,16 +1,17 @@
 import { NextResponse } from 'next/server';
-import { eq, asc } from 'drizzle-orm';
+import { eq, asc, and } from 'drizzle-orm';
+import { auth } from '@clerk/nextjs/server';
 import { db } from '@/lib/db';
 import { exercises, workoutSets } from '@/lib/db/schema';
 
 type Params = { params: Promise<{ date: string }> };
 
 export async function GET(_req: Request, { params }: Params) {
+  const { userId } = await auth();
+  if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+
   const { date } = await params;
 
-  // ① 指定日のセットを種目情報と JOIN して取得
-  // recorded_at 昇順 → set_number 昇順 でソート
-  // グループ化後の種目順は「その種目の最初のセットの recorded_at」で決まる
   const rows = await db
     .select({
       id:               workoutSets.id,
@@ -27,7 +28,7 @@ export async function GET(_req: Request, { params }: Params) {
     })
     .from(workoutSets)
     .innerJoin(exercises, eq(workoutSets.exerciseId, exercises.id))
-    .where(eq(workoutSets.workoutDate, date))
+    .where(and(eq(workoutSets.userId, userId), eq(workoutSets.workoutDate, date)))
     .orderBy(asc(workoutSets.recordedAt), asc(workoutSets.setNumber));
 
   // ② 種目ごとにグループ化

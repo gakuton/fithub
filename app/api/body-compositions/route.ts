@@ -1,19 +1,27 @@
 import { NextResponse } from 'next/server';
-import { asc } from 'drizzle-orm';
+import { asc, eq } from 'drizzle-orm';
+import { auth } from '@clerk/nextjs/server';
 import { db } from '@/lib/db';
 import { bodyCompositions } from '@/lib/db/schema';
 import { bodyCompositionSchema } from '@/lib/validations/body';
 
 export async function GET() {
+  const { userId } = await auth();
+  if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+
   const rows = await db
     .select()
     .from(bodyCompositions)
+    .where(eq(bodyCompositions.userId, userId))
     .orderBy(asc(bodyCompositions.measuredDate));
 
   return NextResponse.json({ data: rows });
 }
 
 export async function POST(req: Request) {
+  const { userId } = await auth();
+  if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+
   const body = await req.json();
   const parsed = bodyCompositionSchema.safeParse(body);
   if (!parsed.success) {
@@ -24,9 +32,9 @@ export async function POST(req: Request) {
 
   const [record] = await db
     .insert(bodyCompositions)
-    .values({ measuredDate, weightKg, bodyFatPct, skeletalMuscleKg, bmr })
+    .values({ userId, measuredDate, weightKg, bodyFatPct, skeletalMuscleKg, bmr })
     .onConflictDoUpdate({
-      target: bodyCompositions.measuredDate,
+      target: [bodyCompositions.userId, bodyCompositions.measuredDate],
       set: {
         weightKg,
         bodyFatPct:       bodyFatPct ?? null,

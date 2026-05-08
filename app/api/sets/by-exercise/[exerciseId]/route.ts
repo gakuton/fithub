@@ -1,11 +1,15 @@
 import { NextResponse } from 'next/server';
 import { eq, desc, asc, and, isNotNull } from 'drizzle-orm';
+import { auth } from '@clerk/nextjs/server';
 import { db } from '@/lib/db';
 import { exercises, workoutSets } from '@/lib/db/schema';
 
 type Params = { params: Promise<{ exerciseId: string }> };
 
 export async function GET(_req: Request, { params }: Params) {
+  const { userId } = await auth();
+  if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+
   const { exerciseId } = await params;
 
   // ① 種目存在確認
@@ -31,7 +35,7 @@ export async function GET(_req: Request, { params }: Params) {
       memo:         workoutSets.memo,
     })
     .from(workoutSets)
-    .where(eq(workoutSets.exerciseId, exerciseId))
+    .where(and(eq(workoutSets.userId, userId), eq(workoutSets.exerciseId, exerciseId)))
     .orderBy(desc(workoutSets.workoutDate), asc(workoutSets.setNumber));
 
   // ④ 全期間 MAX 1RM と達成日

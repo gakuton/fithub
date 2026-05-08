@@ -1,9 +1,13 @@
 import { NextResponse } from 'next/server';
-import { desc, sql } from 'drizzle-orm';
+import { desc, sql, eq } from 'drizzle-orm';
+import { auth } from '@clerk/nextjs/server';
 import { db } from '@/lib/db';
 import { workoutSets, aerobicSessions } from '@/lib/db/schema';
 
 export async function GET() {
+  const { userId } = await auth();
+  if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+
   // 筋トレ日付＋サマリー
   const setRows = await db
     .select({
@@ -14,6 +18,7 @@ export async function GET() {
       maxEstimated1rm: sql<number | null>`MAX(${workoutSets.estimated1rm})`,
     })
     .from(workoutSets)
+    .where(eq(workoutSets.userId, userId))
     .groupBy(workoutSets.workoutDate);
 
   // 有酸素セッション日付＋件数
@@ -23,6 +28,7 @@ export async function GET() {
       count: sql<number>`COUNT(*)`,
     })
     .from(aerobicSessions)
+    .where(eq(aerobicSessions.userId, userId))
     .groupBy(aerobicSessions.sessionDate);
 
   // 全日付を UNION してソート

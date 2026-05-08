@@ -1,13 +1,16 @@
 import { NextResponse } from 'next/server';
-import { eq, asc } from 'drizzle-orm';
+import { eq, asc, and } from 'drizzle-orm';
+import { auth } from '@clerk/nextjs/server';
 import { localToday } from '@/lib/utils/date';
 import { db } from '@/lib/db';
 import { exercises, workoutSets } from '@/lib/db/schema';
 
 export async function GET(request: Request) {
+  const { userId } = await auth();
+  if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+
   const { searchParams } = new URL(request.url);
   const dateParam = searchParams.get('date');
-  // クライアントから日付を受け取る（YYYY-MM-DD 形式のみ許可）
   const today = /^\d{4}-\d{2}-\d{2}$/.test(dateParam ?? '') ? dateParam! : localToday();
 
   const rows = await db
@@ -27,10 +30,9 @@ export async function GET(request: Request) {
     })
     .from(workoutSets)
     .innerJoin(exercises, eq(workoutSets.exerciseId, exercises.id))
-    .where(eq(workoutSets.workoutDate, today))
+    .where(and(eq(workoutSets.userId, userId), eq(workoutSets.workoutDate, today)))
     .orderBy(asc(workoutSets.recordedAt), asc(workoutSets.setNumber));
 
-  // 種目ごとにグループ化
   const grouped = new Map<string, {
     exerciseId: string;
     exerciseName: string;

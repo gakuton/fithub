@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
-import { eq } from 'drizzle-orm';
+import { eq, and } from 'drizzle-orm';
+import { auth } from '@clerk/nextjs/server';
 import { db } from '@/lib/db';
 import { workoutSets } from '@/lib/db/schema';
 import { patchSetSchema } from '@/lib/validations/set';
@@ -8,12 +9,15 @@ import { calcEstimated1rm } from '@/lib/utils/1rm';
 type Params = { params: Promise<{ id: string }> };
 
 export async function PATCH(req: Request, { params }: Params) {
+  const { userId } = await auth();
+  if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+
   const { id } = await params;
 
   const [existing] = await db
     .select()
     .from(workoutSets)
-    .where(eq(workoutSets.id, id));
+    .where(and(eq(workoutSets.id, id), eq(workoutSets.userId, userId)));
   if (!existing) {
     return NextResponse.json({ error: 'セットが見つかりません' }, { status: 404 });
   }
@@ -26,14 +30,12 @@ export async function PATCH(req: Request, { params }: Params) {
 
   const patch = parsed.data;
 
-  // isBodyweight 変更時の処理
   const nextIsBodyweight = patch.isBodyweight ?? existing.isBodyweight;
   let nextWeightKg: number | null;
   let nextReps: number;
   let nextEstimated1rm: number | null;
 
   if (nextIsBodyweight) {
-    // 自重 → weight_kg / estimated_1rm をクリア
     nextWeightKg     = null;
     nextReps         = patch.reps ?? existing.reps;
     nextEstimated1rm = null;
@@ -55,23 +57,26 @@ export async function PATCH(req: Request, { params }: Params) {
       memo:          patch.memo !== undefined ? patch.memo : existing.memo,
       updatedAt:     new Date().toISOString(),
     })
-    .where(eq(workoutSets.id, id))
+    .where(and(eq(workoutSets.id, id), eq(workoutSets.userId, userId)))
     .returning();
 
   return NextResponse.json({ data: updated });
 }
 
 export async function DELETE(_req: Request, { params }: Params) {
+  const { userId } = await auth();
+  if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+
   const { id } = await params;
 
   const [existing] = await db
     .select({ id: workoutSets.id })
     .from(workoutSets)
-    .where(eq(workoutSets.id, id));
+    .where(and(eq(workoutSets.id, id), eq(workoutSets.userId, userId)));
   if (!existing) {
     return NextResponse.json({ error: 'セットが見つかりません' }, { status: 404 });
   }
 
-  await db.delete(workoutSets).where(eq(workoutSets.id, id));
+  await db.delete(workoutSets).where(and(eq(workoutSets.id, id), eq(workoutSets.userId, userId)));
   return new Response(null, { status: 204 });
 }
