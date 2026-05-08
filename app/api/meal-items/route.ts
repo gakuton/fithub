@@ -1,10 +1,14 @@
 import { NextResponse } from 'next/server';
 import { eq, and } from 'drizzle-orm';
+import { auth } from '@clerk/nextjs/server';
 import { db } from '@/lib/db';
 import { meals, mealItems } from '@/lib/db/schema';
 import { postMealItemSchema, calcKcal, MEAL_TYPES, type MealType } from '@/lib/validations/meal';
 
 export async function POST(req: Request) {
+  const { userId } = await auth();
+  if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+
   const body = await req.json();
   const parsed = postMealItemSchema.safeParse(body);
   if (!parsed.success) {
@@ -16,13 +20,13 @@ export async function POST(req: Request) {
   let [meal] = await db
     .select({ id: meals.id })
     .from(meals)
-    .where(and(eq(meals.mealDate, meal_date), eq(meals.mealType, meal_type)))
+    .where(and(eq(meals.userId, userId), eq(meals.mealDate, meal_date), eq(meals.mealType, meal_type)))
     .limit(1);
 
   if (!meal) {
     [meal] = await db
       .insert(meals)
-      .values({ mealDate: meal_date, mealType: meal_type })
+      .values({ userId, mealDate: meal_date, mealType: meal_type })
       .returning({ id: meals.id });
   }
 
@@ -44,6 +48,9 @@ export async function POST(req: Request) {
 }
 
 export async function GET(req: Request) {
+  const { userId } = await auth();
+  if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+
   const { searchParams } = new URL(req.url);
   const date = searchParams.get('date');
   if (!date || !/^\d{4}-\d{2}-\d{2}$/.test(date)) {
@@ -64,7 +71,7 @@ export async function GET(req: Request) {
     })
     .from(mealItems)
     .innerJoin(meals, eq(mealItems.mealId, meals.id))
-    .where(eq(meals.mealDate, date));
+    .where(and(eq(meals.userId, userId), eq(meals.mealDate, date)));
 
   // meal_type でグループ化
   const grouped = MEAL_TYPES.map((type: MealType) => {

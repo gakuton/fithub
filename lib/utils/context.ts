@@ -91,7 +91,7 @@ export function detectFoodDetail(message: string): boolean {
   return keywords.some((k) => message.includes(k))
 }
 
-export async function buildChatContext(period: Period, includesFoodDetail: boolean, userId?: string): Promise<string> {
+export async function buildChatContext(period: Period, includesFoodDetail: boolean, userId: string): Promise<string> {
   const { startDate, endDate } = period
 
   const lines: string[] = []
@@ -113,7 +113,7 @@ export async function buildChatContext(period: Period, includesFoodDetail: boole
     })
     .from(workoutSets)
     .innerJoin(exercises, eq(workoutSets.exerciseId, exercises.id))
-    .where(and(gte(workoutSets.workoutDate, startDate), lte(workoutSets.workoutDate, endDate)))
+    .where(and(eq(workoutSets.userId, userId), gte(workoutSets.workoutDate, startDate), lte(workoutSets.workoutDate, endDate)))
     .orderBy(workoutSets.workoutDate, workoutSets.exerciseId, workoutSets.setNumber)
 
   if (sets.length > 0) {
@@ -151,7 +151,7 @@ export async function buildChatContext(period: Period, includesFoodDetail: boole
   const cardio = await db
     .select()
     .from(aerobicSessions)
-    .where(and(gte(aerobicSessions.sessionDate, startDate), lte(aerobicSessions.sessionDate, endDate)))
+    .where(and(eq(aerobicSessions.userId, userId), gte(aerobicSessions.sessionDate, startDate), lte(aerobicSessions.sessionDate, endDate)))
     .orderBy(aerobicSessions.sessionDate)
 
   if (cardio.length > 0) {
@@ -168,7 +168,7 @@ export async function buildChatContext(period: Period, includesFoodDetail: boole
   const mealRows = await db
     .select()
     .from(meals)
-    .where(and(gte(meals.mealDate, startDate), lte(meals.mealDate, endDate)))
+    .where(and(eq(meals.userId, userId), gte(meals.mealDate, startDate), lte(meals.mealDate, endDate)))
     .orderBy(meals.mealDate, meals.mealType)
 
   if (mealRows.length > 0) {
@@ -226,7 +226,7 @@ export async function buildChatContext(period: Period, includesFoodDetail: boole
   const bodyRows = await db
     .select()
     .from(bodyCompositions)
-    .where(and(gte(bodyCompositions.measuredDate, startDate), lte(bodyCompositions.measuredDate, endDate)))
+    .where(and(eq(bodyCompositions.userId, userId), gte(bodyCompositions.measuredDate, startDate), lte(bodyCompositions.measuredDate, endDate)))
     .orderBy(bodyCompositions.measuredDate)
 
   if (bodyRows.length > 0) {
@@ -241,8 +241,8 @@ export async function buildChatContext(period: Period, includesFoodDetail: boole
   }
 
   // ── プロフィール ────────────────────────────────────────
-  const [demog] = await db.select().from(demographicData).where(eq(demographicData.userId, userId ?? ''))
-  const goals = await db.select().from(motivations).orderBy(desc(motivations.createdAt))
+  const [demog] = await db.select().from(demographicData).where(eq(demographicData.userId, userId))
+  const goals = await db.select().from(motivations).where(eq(motivations.userId, userId)).orderBy(desc(motivations.createdAt))
 
   if (demog) {
     lines.push('### プロフィール')

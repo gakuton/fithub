@@ -1,4 +1,5 @@
 import Anthropic from '@anthropic-ai/sdk'
+import { auth } from '@clerk/nextjs/server'
 import { chatRequestSchema } from '@/lib/validations/chat'
 import { detectPeriod, detectFoodDetail, buildChatContext } from '@/lib/utils/context'
 
@@ -26,6 +27,14 @@ const SYSTEM_PROMPT_PREFIX = `あなたはFitHubのパーソナルトレーナ�
 
 export async function POST(req: Request) {
   try {
+    const { userId } = await auth()
+    if (!userId) {
+      return new Response(JSON.stringify({ error: 'Unauthorized' }), {
+        status: 401,
+        headers: { 'Content-Type': 'application/json' },
+      })
+    }
+
     const body = await req.json()
     const parsed = chatRequestSchema.safeParse(body)
     if (!parsed.success) {
@@ -42,7 +51,7 @@ export async function POST(req: Request) {
     const period = lastUserMsg ? detectPeriod(lastUserMsg.content) : detectPeriod('')
     const includesFoodDetail = lastUserMsg ? detectFoodDetail(lastUserMsg.content) : false
 
-    const contextText = await buildChatContext(period, includesFoodDetail)
+    const contextText = await buildChatContext(period, includesFoodDetail, userId)
     const systemPrompt = SYSTEM_PROMPT_PREFIX + contextText
 
     const stream = new ReadableStream({

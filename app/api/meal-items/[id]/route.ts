@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { eq, and } from 'drizzle-orm';
+import { auth } from '@clerk/nextjs/server';
 import { db } from '@/lib/db';
 import { meals, mealItems } from '@/lib/db/schema';
 import { patchMealItemSchema, calcKcal } from '@/lib/validations/meal';
@@ -8,6 +9,9 @@ export async function PATCH(
   req: Request,
   { params }: { params: Promise<{ id: string }> },
 ) {
+  const { userId } = await auth();
+  if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+
   const { id } = await params;
   const body = await req.json();
   const parsed = patchMealItemSchema.safeParse(body);
@@ -25,7 +29,8 @@ export async function PATCH(
       foodName: mealItems.foodName,
     })
     .from(mealItems)
-    .where(eq(mealItems.id, id));
+    .innerJoin(meals, eq(mealItems.mealId, meals.id))
+    .where(and(eq(mealItems.id, id), eq(meals.userId, userId)));
   if (!existing) {
     return NextResponse.json({ error: '記録が見つかりません' }, { status: 404 });
   }
@@ -47,7 +52,7 @@ export async function PATCH(
       const [found] = await db
         .select({ id: meals.id })
         .from(meals)
-        .where(and(eq(meals.mealDate, newDate), eq(meals.mealType, newType)))
+        .where(and(eq(meals.userId, userId), eq(meals.mealDate, newDate), eq(meals.mealType, newType)))
         .limit(1);
 
       if (found) {
@@ -55,7 +60,7 @@ export async function PATCH(
       } else {
         const [created] = await db
           .insert(meals)
-          .values({ mealDate: newDate, mealType: newType })
+          .values({ userId, mealDate: newDate, mealType: newType })
           .returning({ id: meals.id });
         mealId = created.id;
       }
@@ -87,12 +92,16 @@ export async function DELETE(
   _req: Request,
   { params }: { params: Promise<{ id: string }> },
 ) {
+  const { userId } = await auth();
+  if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+
   const { id } = await params;
 
   const [item] = await db
     .select({ mealId: mealItems.mealId })
     .from(mealItems)
-    .where(eq(mealItems.id, id));
+    .innerJoin(meals, eq(mealItems.mealId, meals.id))
+    .where(and(eq(mealItems.id, id), eq(meals.userId, userId)));
   if (!item) {
     return NextResponse.json({ error: '記録が見つかりません' }, { status: 404 });
   }
