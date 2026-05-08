@@ -91,7 +91,7 @@ export function detectFoodDetail(message: string): boolean {
   return keywords.some((k) => message.includes(k))
 }
 
-export async function buildChatContext(period: Period, includesFoodDetail: boolean): Promise<string> {
+export async function buildChatContext(period: Period, includesFoodDetail: boolean, userId?: string): Promise<string> {
   const { startDate, endDate } = period
 
   const lines: string[] = []
@@ -241,7 +241,7 @@ export async function buildChatContext(period: Period, includesFoodDetail: boole
   }
 
   // ── プロフィール ────────────────────────────────────────
-  const [demog] = await db.select().from(demographicData).where(eq(demographicData.id, 'default'))
+  const [demog] = await db.select().from(demographicData).where(eq(demographicData.userId, userId ?? ''))
   const goals = await db.select().from(motivations).orderBy(desc(motivations.createdAt))
 
   if (demog) {

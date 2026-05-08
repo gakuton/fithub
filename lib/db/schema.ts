@@ -11,6 +11,7 @@ export const exercises = sqliteTable('exercises', {
 
 export const workoutSets = sqliteTable('workout_sets', {
   id:           text('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
+  userId:       text('user_id').notNull().default(''),
   exerciseId:   text('exercise_id').notNull().references(() => exercises.id, { onDelete: 'cascade' }),
   workoutDate:  text('workout_date').notNull(),
   setNumber:    integer('set_number').notNull(),
@@ -23,19 +24,22 @@ export const workoutSets = sqliteTable('workout_sets', {
   createdAt:    text('created_at').notNull().default(sql`(datetime('now'))`),
   updatedAt:    text('updated_at').notNull().default(sql`(datetime('now'))`),
 }, (t) => ({
+  userDateIdx:     index('idx_sets_user_date').on(t.userId, t.workoutDate),
   exerciseDateIdx: index('idx_sets_exercise').on(t.exerciseId, t.workoutDate),
   dateIdx:         index('idx_sets_date').on(t.workoutDate),
-  uniqueSet:       unique().on(t.exerciseId, t.workoutDate, t.setNumber),
+  uniqueSet:       unique().on(t.userId, t.exerciseId, t.workoutDate, t.setNumber),
 }));
 
 export const meals = sqliteTable('meals', {
   id:        text('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
+  userId:    text('user_id').notNull().default(''),
   mealDate:  text('meal_date').notNull(),
   mealType:  text('meal_type').notNull(),
   createdAt: text('created_at').notNull().default(sql`(datetime('now'))`),
   updatedAt: text('updated_at').notNull().default(sql`(datetime('now'))`),
 }, (t) => ({
-  dateTypeIdx: index('idx_meals_date_type').on(t.mealDate, t.mealType),
+  userDateTypeIdx: index('idx_meals_user_date').on(t.userId, t.mealDate),
+  dateTypeIdx:     index('idx_meals_date_type').on(t.mealDate, t.mealType),
 }));
 
 export const mealItems = sqliteTable('meal_items', {
@@ -53,50 +57,58 @@ export const mealItems = sqliteTable('meal_items', {
 }));
 
 export const demographicData = sqliteTable('demographic_data', {
-  id:            text('id').primaryKey().default('default'),
-  gender:        text('gender'),         // 'male' | 'female' | 'other'
+  userId:        text('user_id').primaryKey(),
+  gender:        text('gender'),
   heightCm:      real('height_cm'),
-  birthDate:     text('birth_date'),     // YYYY-MM-DD
-  activityLevel: text('activity_level'), // sedentary | lightly_active | moderately_active | very_active | extra_active
+  birthDate:     text('birth_date'),
+  activityLevel: text('activity_level'),
   updatedAt:     text('updated_at').notNull().default(sql`(datetime('now'))`),
 });
 
 export const motivations = sqliteTable('motivations', {
   id:          text('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
-  category:    text('category'),    // 'cut' | 'bulk' | 'maintain'
+  userId:      text('user_id').notNull().default(''),
+  category:    text('category'),
   description: text('description'),
-  achievedAt:  text('achieved_at'), // YYYY-MM-DD, nullable
+  achievedAt:  text('achieved_at'),
   createdAt:   text('created_at').notNull().default(sql`(datetime('now'))`),
   updatedAt:   text('updated_at').notNull().default(sql`(datetime('now'))`),
-});
+}, (t) => ({
+  userIdx: index('idx_motivations_user').on(t.userId),
+}));
 
 export const aerobicSessions = sqliteTable('aerobic_sessions', {
   id:           text('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
-  activityType: text('activity_type').notNull(), // 'walking' | 'running' | 'tennis'
-  sessionDate:  text('session_date').notNull(),  // YYYY-MM-DD
+  userId:       text('user_id').notNull().default(''),
+  activityType: text('activity_type').notNull(),
+  sessionDate:  text('session_date').notNull(),
   durationMin:  integer('duration_min').notNull(),
-  intensity:    text('intensity').notNull(),      // walking: 'moderate'|'brisk' / running: 'slow'|'moderate' / tennis: 'doubles'|'singles'
-  distanceKm:   real('distance_km'),             // nullable
-  avgHeartRate: integer('avg_heart_rate'),        // nullable
+  intensity:    text('intensity').notNull(),
+  distanceKm:   real('distance_km'),
+  avgHeartRate: integer('avg_heart_rate'),
   weightKg:     real('weight_kg').notNull(),
   kcalBurned:   real('kcal_burned').notNull(),
   memo:         text('memo'),
   createdAt:    text('created_at').notNull().default(sql`(datetime('now'))`),
   updatedAt:    text('updated_at').notNull().default(sql`(datetime('now'))`),
 }, (t) => ({
-  dateIdx: index('idx_aerobic_date').on(t.sessionDate),
+  userDateIdx: index('idx_aerobic_user_date').on(t.userId, t.sessionDate),
+  dateIdx:     index('idx_aerobic_date').on(t.sessionDate),
 }));
 
 export const bodyCompositions = sqliteTable('body_compositions', {
-  id:                text('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
-  measuredDate:      text('measured_date').notNull().unique(),
-  weightKg:          real('weight_kg').notNull(),
-  bodyFatPct:        real('body_fat_pct'),
-  skeletalMuscleKg:  real('skeletal_muscle_kg'),
-  bmr:               real('bmr'),
-  extraData:         text('extra_data'),
-  createdAt:         text('created_at').notNull().default(sql`(datetime('now'))`),
-  updatedAt:         text('updated_at').notNull().default(sql`(datetime('now'))`),
+  id:               text('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
+  userId:           text('user_id').notNull().default(''),
+  measuredDate:     text('measured_date').notNull(),
+  weightKg:         real('weight_kg').notNull(),
+  bodyFatPct:       real('body_fat_pct'),
+  skeletalMuscleKg: real('skeletal_muscle_kg'),
+  bmr:              real('bmr'),
+  extraData:        text('extra_data'),
+  createdAt:        text('created_at').notNull().default(sql`(datetime('now'))`),
+  updatedAt:        text('updated_at').notNull().default(sql`(datetime('now'))`),
 }, (t) => ({
-  dateIdx: index('idx_body_date').on(t.measuredDate),
+  userDateIdx:   index('idx_body_user_date').on(t.userId, t.measuredDate),
+  dateIdx:       index('idx_body_date').on(t.measuredDate),
+  userDateUniq:  unique('uniq_body_user_date').on(t.userId, t.measuredDate),
 }));
