@@ -130,9 +130,9 @@ function DateCard({ date, summary }: TrainingDate) {
       }),
     ]);
     const profile = {
-      body:       bodyRes?.data  ?? null,
-      demog:      demogRes?.data ?? null,
-      motivation: motivRes?.data?.[0] ?? null,
+      body:        bodyRes?.data  ?? null,
+      demog:       demogRes?.data ?? null,
+      motivations: motivRes?.data ?? [],
     };
     const mappedGroups = groups.map((g) => ({
       exerciseName: g.exerciseName,

@@ -55,9 +55,9 @@ export default function AerobicPage() {
       }),
     ]);
     const profile = {
-      body:       bodyRes?.data  ?? null,
-      demog:      demogRes?.data ?? null,
-      motivation: motivRes?.data?.[0] ?? null,
+      body:        bodyRes?.data  ?? null,
+      demog:       demogRes?.data ?? null,
+      motivations: motivRes?.data ?? [],
     };
     const exportSessions: AerobicSessionExport[] = sessions.map((s) => ({
       sessionDate:  s.sessionDate,

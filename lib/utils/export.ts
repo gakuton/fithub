@@ -48,7 +48,7 @@ function calcAgeFromBirth(birthDate: string): number {
 export function buildProfileText(
   body: BodyComposition | null,
   demog: DemographicData | null,
-  motivation: MotivationData | null,
+  motivations: MotivationData[],
 ): string {
   const lines: string[] = [];
 
@@ -68,15 +68,21 @@ export function buildProfileText(
   if (demog?.birthDate)     demogParts.push(`年齢：${calcAgeFromBirth(demog.birthDate)}歳`);
   if (demog?.activityLevel) demogParts.push(`活動レベル：${ACTIVITY_LEVEL_LABELS_MAP[demog.activityLevel] ?? demog.activityLevel}`);
 
-  const motivParts: string[] = [];
-  if (motivation?.category)    motivParts.push(MOTIVATION_CATEGORY_LABELS_MAP[motivation.category] ?? motivation.category);
-  if (motivation?.description) motivParts.push(motivation.description);
+  const motivLines: string[] = motivations
+    .map((m) => {
+      const parts: string[] = [];
+      if (m.category)    parts.push(MOTIVATION_CATEGORY_LABELS_MAP[m.category] ?? m.category);
+      if (m.description) parts.push(m.description);
+      return parts.join(' ／ ');
+    })
+    .filter(Boolean)
+    .map((line) => `目標：${line}`);
 
-  if (demogParts.length > 0 || motivParts.length > 0) {
+  if (demogParts.length > 0 || motivLines.length > 0) {
     lines.push('---');
     lines.push('【プロフィール】');
     if (demogParts.length > 0) lines.push(demogParts.join('　'));
-    if (motivParts.length > 0) lines.push(`目標：${motivParts.join(' ／ ')}`);
+    lines.push(...motivLines);
   }
 
   if (lines.length === 0) return '';
@@ -136,7 +142,7 @@ export function buildMealDayText(
   groups: MealGroup[],
   total: { kcal: number; protein_g: number; fat_g: number; carb_g: number },
   date: string,
-  profile?: { body: BodyComposition | null; demog: DemographicData | null; motivation: MotivationData | null },
+  profile?: { body: BodyComposition | null; demog: DemographicData | null; motivations: MotivationData[] },
 ): string {
   const lines: string[] = [];
   lines.push('---');
@@ -153,7 +159,7 @@ export function buildMealDayText(
     lines.push(`  P:${Math.round(total.protein_g)}g ／ F:${Math.round(total.fat_g)}g ／ C:${Math.round(total.carb_g)}g`);
   }
   lines.push('---');
-  if (profile) lines.push(buildProfileText(profile.body, profile.demog, profile.motivation));
+  if (profile) lines.push(buildProfileText(profile.body, profile.demog, profile.motivations));
   return lines.join('\n');
 }
 
@@ -168,7 +174,7 @@ type WeekDayMeal = {
 export function buildMealWeekText(
   days: WeekDayMeal[],
   weekStart: string,
-  profile?: { body: BodyComposition | null; demog: DemographicData | null; motivation: MotivationData | null },
+  profile?: { body: BodyComposition | null; demog: DemographicData | null; motivations: MotivationData[] },
 ): string {
   const lines: string[] = [];
   lines.push('---');
@@ -185,7 +191,7 @@ export function buildMealWeekText(
     lines.push('');
   }
   lines.push('---');
-  if (profile) lines.push(buildProfileText(profile.body, profile.demog, profile.motivation));
+  if (profile) lines.push(buildProfileText(profile.body, profile.demog, profile.motivations));
   return lines.join('\n');
 }
 
@@ -201,7 +207,7 @@ type BodyRow = {
 
 export function buildBodyText(
   rows: BodyRow[],
-  profile?: { body: BodyComposition | null; demog: DemographicData | null; motivation: MotivationData | null },
+  profile?: { body: BodyComposition | null; demog: DemographicData | null; motivations: MotivationData[] },
 ): string {
   const lines: string[] = [];
   lines.push('---');
@@ -220,7 +226,7 @@ export function buildBodyText(
   }
 
   lines.push('---');
-  if (profile) lines.push(buildProfileText(profile.body, profile.demog, profile.motivation));
+  if (profile) lines.push(buildProfileText(profile.body, profile.demog, profile.motivations));
   return lines.join('\n');
 }
 
@@ -256,7 +262,7 @@ export function buildTodayText(
   aerobicSessions?: AerobicSessionExport[],
   mealGroups?: MealGroup[],
   mealTotal?: { kcal: number; protein_g: number; fat_g: number; carb_g: number },
-  profile?: { body: BodyComposition | null; demog: DemographicData | null; motivation: MotivationData | null },
+  profile?: { body: BodyComposition | null; demog: DemographicData | null; motivations: MotivationData[] },
 ): string {
   const lines: string[] = [];
   lines.push('---');
@@ -321,7 +327,7 @@ export function buildTodayText(
     lines.push('---');
   }
 
-  if (profile) lines.push(buildProfileText(profile.body, profile.demog, profile.motivation));
+  if (profile) lines.push(buildProfileText(profile.body, profile.demog, profile.motivations));
 
   return lines.join('\n');
 }
@@ -367,7 +373,7 @@ export function buildDateText(
   date: string,
   groups: DateSetGroup[],
   aerobicSessions: AerobicSessionExport[],
-  profile?: { body: BodyComposition | null; demog: DemographicData | null; motivation: MotivationData | null },
+  profile?: { body: BodyComposition | null; demog: DemographicData | null; motivations: MotivationData[] },
 ): string {
   const lines: string[] = [];
   lines.push('---');
@@ -401,7 +407,7 @@ export function buildDateText(
   }
 
   lines.push('---');
-  if (profile) lines.push(buildProfileText(profile.body, profile.demog, profile.motivation));
+  if (profile) lines.push(buildProfileText(profile.body, profile.demog, profile.motivations));
   return lines.join('\n');
 }
 
@@ -409,7 +415,7 @@ export function buildDateText(
 
 export function buildAerobicText(
   sessions: AerobicSessionExport[],
-  profile?: { body: BodyComposition | null; demog: DemographicData | null; motivation: MotivationData | null },
+  profile?: { body: BodyComposition | null; demog: DemographicData | null; motivations: MotivationData[] },
 ): string {
   const lines: string[] = [];
   lines.push('---');
@@ -429,7 +435,7 @@ export function buildAerobicText(
   }
 
   lines.push('---');
-  if (profile) lines.push(buildProfileText(profile.body, profile.demog, profile.motivation));
+  if (profile) lines.push(buildProfileText(profile.body, profile.demog, profile.motivations));
   return lines.join('\n');
 }
 

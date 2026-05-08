@@ -48,7 +48,7 @@ export default function MealPage() {
   const getProfile = () => ({
     body:       queryClient.getQueryData<{ data: BodyComposition | null }>(['body-compositions', 'latest'])?.data ?? null,
     demog:      queryClient.getQueryData<{ data: DemographicData | null }>(['profile', 'demographic'])?.data ?? null,
-    motivation: queryClient.getQueryData<{ data: MotivationData[] }>(['profile', 'motivations'])?.data?.[0] ?? null,
+    motivations: queryClient.getQueryData<{ data: MotivationData[] }>(['profile', 'motivations'])?.data ?? [],
   });
 
   const handleExportDay = () => {
