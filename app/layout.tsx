@@ -1,9 +1,8 @@
 import type { Metadata, Viewport } from 'next';
 import { Geist } from 'next/font/google';
 import './globals.css';
+import { ClerkProvider } from '@clerk/nextjs';
 import { QueryProvider } from '@/components/common/QueryProvider';
-import { BottomNav } from '@/components/common/BottomNav';
-import { Toaster } from '@/components/ui/sonner';
 
 const geist = Geist({ variable: '--font-geist-sans', subsets: ['latin'] });
 
@@ -24,14 +23,14 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="ja" className={`${geist.variable} h-full antialiased`}>
-      <body className="min-h-full bg-background text-foreground">
-        <QueryProvider>
-          <main className="pb-20">{children}</main>
-          <BottomNav />
-          <Toaster />
-        </QueryProvider>
-      </body>
-    </html>
+    <ClerkProvider>
+      <html lang="ja" className={`${geist.variable} h-full antialiased`}>
+        <body className="min-h-full bg-background text-foreground">
+          <QueryProvider>
+            {children}
+          </QueryProvider>
+        </body>
+      </html>
+    </ClerkProvider>
   );
 }
