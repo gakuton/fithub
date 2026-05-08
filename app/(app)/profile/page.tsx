@@ -1,7 +1,8 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { ChevronLeft } from 'lucide-react';
+import { ChevronLeft, LogOut } from 'lucide-react';
+import { SignOutButton } from '@clerk/nextjs';
 import { DemographicSection } from '@/components/profile/DemographicSection';
 import { MotivationSection } from '@/components/profile/MotivationSection';
 
@@ -18,6 +19,14 @@ export default function ProfilePage() {
           <ChevronLeft size={22} />
         </button>
         <h1 className="text-xl font-bold tracking-tight">プロフィール</h1>
+        <div className="ml-auto">
+          <SignOutButton redirectUrl="/sign-in">
+            <button className="flex min-h-[44px] min-w-[44px] items-center justify-center gap-1.5 rounded-full text-muted-foreground hover:bg-muted">
+              <LogOut size={18} />
+              <span className="text-sm">サインアウト</span>
+            </button>
+          </SignOutButton>
+        </div>
       </div>
 
       <div className="space-y-6 pb-8">
