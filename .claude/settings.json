@@ -1,0 +1,17 @@
+{
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "mcp__github__create_pull_request",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash \"$(git rev-parse --show-toplevel)/.claude/hooks/pre-pr-check.sh\"",
+            "timeout": 360,
+            "statusMessage": "デプロイ前チェック実行中（型チェック・ビルド・env vars）..."
+          }
+        ]
+      }
+    ]
+  }
+}
