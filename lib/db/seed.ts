@@ -13,6 +13,7 @@ const seedExercises = [
   { name: 'インクラインダンベルプレス', category: '胸' },
   { name: 'ダンベルプレス',             category: '胸' },
   { name: 'ケーブルフライ',             category: '胸' },
+  { name: 'ダンベルフライ',             category: '胸' },
   { name: 'ラットプルダウン',           category: '背中' },
   { name: 'デッドリフト',               category: '背中' },
   { name: 'シーテッドロー',             category: '背中' },
