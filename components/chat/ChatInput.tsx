@@ -12,6 +12,7 @@ interface Props {
 }
 
 export function ChatInput({ value, onChange, onSubmit, disabled }: Props) {
+  console.log('[ChatInput] render - with speech recognition')
   const textareaRef = useRef<HTMLTextAreaElement>(null)
   const [liveTranscript, setLiveTranscript] = useState('')
 
