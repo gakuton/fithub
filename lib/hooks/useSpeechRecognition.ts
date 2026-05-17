@@ -60,7 +60,6 @@ export function useSpeechRecognition({ onResult, onError }: Options) {
   useEffect(() => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const SR = (window as any).SpeechRecognition ?? (window as any).webkitSpeechRecognition
-    console.log('[SpeechRecognition] SR:', SR, 'isSupported:', !!SR)
     setIsSupported(!!SR)
   }, [])
 
