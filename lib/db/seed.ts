@@ -2,10 +2,15 @@ import { drizzle } from 'drizzle-orm/libsql';
 import { createClient } from '@libsql/client';
 import { exercises } from './schema';
 
-const client = createClient({
-  url: process.env.TURSO_DATABASE_URL ?? 'file:./local.db',
-  authToken: process.env.TURSO_AUTH_TOKEN,
-});
+const dbUrl = process.env.TURSO_DATABASE_URL;
+if (!dbUrl || dbUrl.startsWith('file:')) {
+  console.error('ERROR: TURSO_DATABASE_URL が未設定またはローカルファイルです。本番DBへの接続情報を確認してください。');
+  console.error('  現在の値:', dbUrl ?? '(未設定)');
+  process.exit(1);
+}
+
+console.log('接続先DB:', dbUrl);
+const client = createClient({ url: dbUrl, authToken: process.env.TURSO_AUTH_TOKEN });
 const db = drizzle(client);
 
 const seedExercises = [
@@ -27,11 +32,19 @@ const seedExercises = [
 ];
 
 async function seed() {
-  console.log('Seeding exercises...');
+  console.log(`Seeding ${seedExercises.length} exercises...`);
+  let inserted = 0;
+  let skipped = 0;
   for (const exercise of seedExercises) {
-    await db.insert(exercises).values(exercise).onConflictDoNothing();
+    const result = await db.insert(exercises).values(exercise).onConflictDoNothing().returning();
+    if (result.length > 0) {
+      console.log(`  + ${exercise.name}`);
+      inserted++;
+    } else {
+      skipped++;
+    }
   }
-  console.log(`Done. Inserted ${seedExercises.length} exercises.`);
+  console.log(`Done. inserted=${inserted}, skipped(already exists)=${skipped}`);
   process.exit(0);
 }
 
