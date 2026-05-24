@@ -25,6 +25,7 @@ const seedExercises = [
   { name: 'ダンベルロー',               category: '背中' },
   { name: 'スクワット',                 category: '脚' },
   { name: 'ブルガリアンスクワット',     category: '脚' },
+  { name: 'レッグエクステンション',     category: '脚' },
   { name: 'カーフレイズ',               category: '脚' },
   { name: 'レッグレイズ',               category: '体幹' },
   { name: 'ドローイン',                 category: '体幹' },
